@@ -1826,6 +1826,6 @@ function clearXR(){var fi=document.getElementById('xrFiles');if(fi)fi.innerHTML=
 function dlCSV(){var hdrs=['STUDYID','DOMAIN','USUBJID','VARIABLE','LABEL','VALUE','CONFIDENCE','SOURCE','DATETIME'];var rows=extractedVars.map(function(v){return['"CARE-2024-001"','"'+v.domain+'"','"AN-2024-001"','"'+v.variable+'"','"'+v.label+'"','"'+v.value+'"','"'+v.confidence+'%"','"'+v.source+'"','"'+new Date().toISOString()+'"'].join(',');});var csv=[hdrs.join(',')].concat(rows).join('\n');var blob=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SDTM_mapping_'+new Date().toISOString().slice(0,10)+'.csv';a.click();toast('Downloaded',extractedVars.length+' rows · SDTM v3.4','⬇');}
 function copyCSV(){var rows=extractedVars.map(function(v){return[v.domain,v.variable,v.label,v.value,v.confidence+'%',v.source].join('\t');});navigator.clipboard.writeText(['DOMAIN\tVARIABLE\tLABEL\tVALUE\tCONFIDENCE\tSOURCE'].concat(rows).join('\n'));toast('Copied','Table copied to clipboard','📋');}
 
-</script>
+<script type="module" src="./js/app.js"></script>
 </body>
 </html>
