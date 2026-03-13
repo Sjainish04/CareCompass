@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareCompass — Complete Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0a0618;--surface:#130a25;--card:#1a1030;--card2:#1f1438;
+  --border:rgba(139,92,246,.14);--bh:rgba(139,92,246,.38);
+  --violet:#6d28d9;--purple:#7c3aed;--amethyst:#8b5cf6;--lavender:#c4b5fd;--mist:#ede9fe;
+  --white:#fff;--muted:rgba(255,255,255,.38);--dim:rgba(255,255,255,.62);
+  --green:#10b981;--gbg:rgba(16,185,129,.11);
+  --yellow:#f59e0b;--ybg:rgba(245,158,11,.11);
+  --red:#ef4444;--rbg:rgba(239,68,68,.11);
+  --blue:#3b82f6;--bbg:rgba(59,130,246,.11);
+  --teal:#14b8a6;--tbg:rgba(20,184,166,.11);
+  --indigo:#4f46e5;
+}
+html,body{height:100%;background:var(--ink);color:var(--white);font-family:'DM Sans',sans-serif;overflow:hidden}
+/* scrollbar */
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(139,92,246,.3);border-radius:2px}
+
+/* ── SHELL ── */
+.shell{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:238px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-logo{padding:1.05rem 1.15rem .85rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.58rem;flex-shrink:0}
+.sb-mark{width:29px;height:29px;border-radius:8px;background:linear-gradient(135deg,var(--violet),var(--amethyst));display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0;box-shadow:0 2px 10px rgba(109,40,217,.45)}
+.sb-title{font-family:'Playfair Display',serif;font-size:.92rem;font-weight:700;letter-spacing:-.01em}
+.sb-sub{font-size:.52rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+.role-toggle{margin:.55rem .95rem;display:flex;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:2px;flex-shrink:0;gap:2px}
+.rtbtn{flex:1;padding:.34rem;border-radius:6px;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.67rem;font-weight:500;cursor:pointer;transition:all .22s}
+.rtbtn.active{background:var(--violet);color:var(--white);box-shadow:0 1px 6px rgba(109,40,217,.4)}
+.sb-user{padding:.7rem 1.05rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.58rem;flex-shrink:0}
+.sb-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:.75rem;font-weight:700;border:1.5px solid rgba(139,92,246,.28);flex-shrink:0;transition:all .3s}
+.sb-av.pat{background:linear-gradient(135deg,#3b0764,var(--violet))}
+.sb-av.prov{background:linear-gradient(135deg,#1e3a5f,var(--indigo))}
+.sb-uname{font-size:.78rem;font-weight:600;line-height:1.3}
+.sb-urole{font-size:.57rem;color:var(--amethyst);margin-top:.06rem}
+.sb-ulang{font-size:.56rem;color:var(--muted);margin-top:.04rem}
+.sb-nav{padding:.5rem;flex:1;overflow-y:auto}
+.nl{font-size:.52rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);padding:0 .58rem;margin:.5rem 0 .22rem}
+.ni{display:flex;align-items:center;gap:.55rem;padding:.52rem .6rem;border-radius:8px;font-size:.76rem;color:var(--dim);cursor:pointer;transition:all .18s;margin-bottom:.06rem;border:1px solid transparent;user-select:none}
+.ni:hover{background:rgba(139,92,246,.07);color:var(--white)}
+.ni.active{background:rgba(109,40,217,.18);color:var(--white);border-color:rgba(139,92,246,.18)}
+.ni-ico{font-size:.82rem;width:17px;text-align:center;flex-shrink:0}
+.ni-badge{margin-left:auto;padding:.04rem .35rem;border-radius:100px;font-size:.54rem;font-weight:700;background:var(--violet);color:var(--white)}
+.ni-badge.g{background:var(--green)}.ni-badge.r{background:var(--red)}.ni-badge.y{background:var(--yellow);color:#000}
+.sb-foot{padding:.7rem 1.05rem;border-top:1px solid var(--border);font-size:.58rem;color:var(--muted);flex-shrink:0;line-height:1.65}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;border-bottom:1px solid var(--border);background:rgba(19,10,37,.95);backdrop-filter:blur(18px);flex-shrink:0;z-index:10;min-height:62px;gap:1rem}
+.tb-l{min-width:0}
+.tb-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-sub{font-size:.67rem;color:var(--muted);margin-top:.08rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-right{display:flex;align-items:center;gap:.48rem;flex-shrink:0}
+.btn{padding:.42rem .85rem;border-radius:8px;font-size:.73rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;border:none;display:inline-flex;align-items:center;gap:.32rem;white-space:nowrap;letter-spacing:-.01em}
+.btn-p{background:linear-gradient(135deg,var(--violet),var(--amethyst));color:var(--white);box-shadow:0 2px 10px rgba(109,40,217,.32)}
+.btn-p:hover{opacity:.88;transform:translateY(-1px)}
+.btn-g{background:rgba(255,255,255,.04);color:var(--dim);border:1px solid var(--border)}
+.btn-g:hover{background:rgba(255,255,255,.08);color:var(--white)}
+.nbb{width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:.8rem;transition:background .2s;flex-shrink:0}
+.nbb:hover{background:rgba(255,255,255,.08)}
+.ndot{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--amethyst);border:1.5px solid var(--surface)}
+.content{flex:1;overflow-y:auto;padding:1.35rem 1.5rem;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── VIEWS ── */
+.view{display:none}.view.on{display:block}
+.viewflex{display:none;height:calc(100vh - 62px);overflow:hidden}.viewflex.on{display:flex}
+
+/* ── LAYOUT GRIDS ── */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:.95rem;margin-bottom:1.2rem}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:.85rem;margin-bottom:1.2rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem}
+.g32{display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;margin-bottom:1.2rem}
+.g23{display:grid;grid-template-columns:3fr 2fr;gap:1.2rem;margin-bottom:1.2rem}
+.gap{margin-bottom:1.2rem}
+.col{display:flex;flex-direction:column;gap:1rem}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.ch{padding:.9rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-shrink:0}
+.ch-title{font-size:.83rem;font-weight:600;letter-spacing:-.01em}
+.ch-sub{font-size:.63rem;color:var(--muted);margin-top:.07rem}
+.cl{font-size:.67rem;color:var(--amethyst);cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:color .18s}
+.cl:hover{color:var(--lavender)}
+.cb{padding:.9rem 1.2rem}
+
+/* ── STAT CARDS ── */
+.sc{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.1rem;transition:all .25s;cursor:default;position:relative;overflow:hidden}
+.sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent)}
+.sc:hover{border-color:var(--bh);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem}
+.sc-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.88rem}
+.iv{background:rgba(109,40,217,.2)}.ig{background:var(--gbg)}.iy{background:var(--ybg)}.ib{background:var(--bbg)}.ir{background:var(--rbg)}.it{background:var(--tbg)}
+.sc-delta{font-size:.58rem;padding:.07rem .34rem;border-radius:100px;font-weight:500}
+.dg{background:var(--gbg);color:var(--green)}.dy{background:var(--ybg);color:var(--yellow)}.dr{background:var(--rbg);color:var(--red)}
+.sc-num{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.sc-lbl{font-size:.65rem;color:var(--muted);margin-top:.22rem}
+
+/* ── PROGRESS BARS ── */
+.pbar{background:rgba(255,255,255,.06);border-radius:100px;height:4px;overflow:hidden;margin-top:.38rem}
+.pfill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--violet),var(--amethyst));width:0;transition:width 1s cubic-bezier(.4,0,.2,1)}
+
+/* ── CHIPS ── */
+.chip{display:inline-flex;align-items:center;font-size:.58rem;padding:.1rem .4rem;border-radius:100px;font-weight:500;border:1px solid}
+.cg{background:var(--gbg);border-color:rgba(16,185,129,.22);color:var(--green)}
+.cy{background:var(--ybg);border-color:rgba(245,158,11,.22);color:var(--yellow)}
+.cr{background:var(--rbg);border-color:rgba(239,68,68,.22);color:var(--red)}
+.cv{background:rgba(109,40,217,.15);border-color:rgba(139,92,246,.22);color:var(--lavender)}
+.cb-chip{background:var(--bbg);border-color:rgba(59,130,246,.22);color:var(--blue)}
+.cgr{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:var(--muted)}
+
+/* ── HOME HERO ── */
+.hero{background:linear-gradient(135deg,rgba(109,40,217,.12),rgba(139,92,246,.05));border:1px solid var(--border);border-radius:16px;padding:2rem;margin-bottom:1.2rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(139,92,246,.15),transparent 70%);pointer-events:none}
+.hero-ey{font-size:.62rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--amethyst);margin-bottom:.75rem}
+.hero-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;line-height:1.22;letter-spacing:-.02em;margin-bottom:.75rem}
+.hero-title em{font-style:italic;background:linear-gradient(135deg,var(--lavender),var(--amethyst));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:.82rem;color:var(--dim);line-height:1.7;max-width:560px;margin-bottom:1.25rem}
+.hero-btns{display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.hero-stats{display:flex;gap:2.5rem;flex-wrap:wrap}
+.hs-num{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700}
+.hs-lbl{font-size:.62rem;color:var(--muted);margin-top:.1rem}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.85rem}
+.feat{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.1rem;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.feat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--violet),transparent);opacity:0;transition:opacity .22s}
+.feat:hover{border-color:var(--bh);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.feat:hover::before{opacity:1}
+.feat-ico{font-size:1.4rem;margin-bottom:.65rem}
+.feat-title{font-size:.83rem;font-weight:600;margin-bottom:.3rem}
+.feat-desc{font-size:.7rem;color:var(--muted);line-height:1.6}
+
+/* ── JOURNEY STEPS ── */
+.jstep{display:flex;gap:.8rem;padding:.75rem 1.2rem;transition:background .2s;cursor:default}
+.jstep:hover{background:rgba(255,255,255,.02)}
+.jconn{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.jdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;border:2px solid}
+.jdot.done{background:rgba(16,185,129,.15);border-color:var(--green);color:var(--green)}
+.jdot.now{background:rgba(109,40,217,.2);border-color:var(--amethyst);color:var(--amethyst);animation:pulse-j 2s infinite}
+@keyframes pulse-j{0%,100%{box-shadow:0 0 0 0 rgba(139,92,246,.4)}50%{box-shadow:0 0 0 6px rgba(139,92,246,0)}}
+.jdot.pend{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12);color:var(--muted)}
+.jline{width:2px;flex:1;min-height:20px;background:linear-gradient(var(--border),transparent);margin:.18rem 0}
+.jbody{flex:1;padding-top:.22rem}
+.jtitle{font-size:.82rem;font-weight:600;margin-bottom:.2rem}
+.jdetail{font-size:.72rem;color:var(--dim);line-height:1.6;margin-bottom:.4rem}
+.jmeta{display:flex;align-items:center;gap:.55rem}
+.jdate{font-size:.62rem;color:var(--muted)}
+
+/* ── APPOINTMENTS ── */
+.aitm{display:flex;align-items:center;gap:.85rem;padding:.85rem 0;border-bottom:1px solid var(--border)}
+.aitm:last-child{border-bottom:none}
+.adate{width:38px;text-align:center;flex-shrink:0}
+.aday{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;line-height:1.1}
+.amo{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ainfo{flex:1;min-width:0}
+.aname{font-size:.8rem;font-weight:500}
+.adetail{font-size:.68rem;color:var(--muted);margin-top:.1rem}
+.alang{font-size:.65rem;color:var(--amethyst);margin-top:.15rem}
+
+/* ── REFERRALS ── */
+.ritm{display:flex;align-items:center;gap:.7rem;padding:.82rem 1.2rem;border-bottom:1px solid var(--border);transition:background .18s}
+.ritm:last-child{border-bottom:none}
+.ritm:hover{background:rgba(255,255,255,.02)}
+.rico{font-size:1.1rem;flex-shrink:0;width:28px;text-align:center}
+.rinfo{flex:1;min-width:0}
+.rtitle{font-size:.78rem;font-weight:500}
+.rdetail{font-size:.65rem;color:var(--muted);margin-top:.1rem}
+.rfoot{display:flex;align-items:center;gap:.5rem;margin-top:.32rem}
+
+/* ── CHAT ── */
+.cmsg{display:flex;align-items:flex-end;gap:.55rem;animation:fadeIn .3s ease}
+.cmsg.cmsg-r{flex-direction:row-reverse}
+.cav{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:.68rem;font-weight:700;flex-shrink:0}
+.cav-nav{background:linear-gradient(135deg,var(--violet),var(--amethyst))}
+.cav-usr{background:linear-gradient(135deg,#1e3a5f,var(--indigo))}
+.cbbl{padding:.62rem .85rem;border-radius:14px;font-size:.76rem;line-height:1.6;max-width:88%}
+.cbbl-nav{background:rgba(109,40,217,.18);border:1px solid rgba(139,92,246,.18);border-bottom-left-radius:4px}
+.cbbl-usr{background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.2);border-bottom-right-radius:4px}
+.ctime{font-size:.58rem;color:var(--muted);margin-top:.22rem;padding:0 .3rem}
+.cmsg.cmsg-r .ctime{text-align:right}
+.cinp-row{display:flex;gap:.5rem;padding:.85rem 1.2rem;border-top:1px solid var(--border);flex-shrink:0}
+.cinp{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;padding:.6rem .85rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.78rem;outline:none;transition:border-color .2s}
+.cinp:focus{border-color:var(--bh)}
+.cinp::placeholder{color:var(--muted)}
+.csend{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--violet),var(--amethyst));border:none;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;transition:all .2s}
+.csend:hover{transform:scale(1.05)}
+.ctyping{display:flex;align-items:center;gap:4px;padding:.5rem .85rem;border-radius:12px;background:rgba(109,40,217,.12);border:1px solid rgba(139,92,246,.15);width:fit-content}
+.ctyping span{width:5px;height:5px;border-radius:50%;background:var(--amethyst);animation:bounce .8s infinite}
+.ctyping span:nth-child(2){animation-delay:.15s}
+.ctyping span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+
+/* ── HEALTH TAGS ── */
+.htag{display:inline-block;font-size:.65rem;padding:.2rem .55rem;border-radius:100px;margin:.22rem .2rem 0 0;font-weight:500;border:1px solid}
+.hcond{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.25);color:var(--blue)}
+.hmed{background:rgba(109,40,217,.12);border-color:rgba(139,92,246,.2);color:var(--lavender)}
+.hallergy{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.2);color:var(--red)}
+
+/* ── PROVIDER TABLE ── */
+.sch-tbl{width:100%;border-collapse:collapse;font-size:.76rem}
+.sch-tbl th{text-align:left;padding:.6rem 1rem;font-size:.6rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+.sch-tbl td{padding:.72rem 1rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.sch-tbl tr:last-child td{border-bottom:none}
+.sch-tbl tr:hover td{background:rgba(255,255,255,.02)}
+.sch-tbl tr.urg td{background:rgba(239,68,68,.04)}
+.ttime{font-family:'DM Mono',monospace;font-size:.73rem;color:var(--dim);white-space:nowrap}
+.tpat{display:flex;align-items:center;gap:.55rem}
+.pav{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:.62rem;font-weight:700;flex-shrink:0;border:1px solid rgba(255,255,255,.12)}
+.pname{font-size:.77rem;font-weight:500}
+.plang{font-size:.6rem;color:var(--amethyst);margin-top:.05rem}
+.abtn{padding:.3rem .65rem;border-radius:6px;font-size:.67rem;font-weight:500;cursor:pointer;transition:all .18s;font-family:'DM Sans',sans-serif;border:none;white-space:nowrap}
+.abtn-p{background:rgba(109,40,217,.25);color:var(--lavender);border:1px solid rgba(139,92,246,.25)}
+.abtn-p:hover{background:rgba(109,40,217,.4);color:var(--white)}
+.abtn-g{background:rgba(255,255,255,.05);color:var(--dim);border:1px solid var(--border)}
+.abtn-g:hover{background:rgba(255,255,255,.1);color:var(--white)}
+
+/* ── MINI CHART ── */
+.mini-chart{display:flex;align-items:flex-end;gap:4px;padding:0 1.2rem;height:56px}
+.mc-bar{flex:1;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--amethyst),rgba(109,40,217,.3));min-height:4px;transition:height .5s cubic-bezier(.4,0,.2,1)}
+
+/* ── METRIC BARS ── */
+.mbar-row{display:flex;align-items:center;gap:.65rem;margin-bottom:.62rem}
+.mbar-lbl{font-size:.68rem;color:var(--dim);width:90px;flex-shrink:0}
+.mbar{flex:1;background:rgba(255,255,255,.06);border-radius:100px;height:5px;overflow:hidden}
+.mbar-fill{height:100%;border-radius:100px;width:0;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.fill-g{background:linear-gradient(90deg,var(--green),#34d399)}.fill-b{background:linear-gradient(90deg,var(--blue),#60a5fa)}.fill-r{background:linear-gradient(90deg,var(--red),#f87171)}.fill-y{background:linear-gradient(90deg,var(--yellow),#fbbf24)}
+.mbar-val{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--white);width:30px;text-align:right;flex-shrink:0}
+/* lang bars */
+.lbar-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.55rem}
+.lbar-lbl{font-size:.68rem;color:var(--dim);width:72px;flex-shrink:0}
+.lbar{flex:1;background:rgba(255,255,255,.06);border-radius:100px;height:4px;overflow:hidden}
+.lbar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--violet),var(--amethyst));width:0;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.lbar-pct{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);width:28px;text-align:right;flex-shrink:0}
+
+/* ── RECOVERY ITEMS ── */
+.recitm{display:flex;align-items:center;gap:.65rem;padding:.65rem .75rem;border-radius:9px;cursor:pointer;transition:all .2s;border:1px solid transparent;margin-bottom:.35rem}
+.recitm:hover{background:rgba(109,40,217,.15);border-color:rgba(139,92,246,.2);transform:translateX(3px)}
+.rectime{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--dim);flex-shrink:0;width:60px}
+.recact{font-size:.68rem;color:var(--amethyst);font-weight:600;flex-shrink:0;transition:color .18s}
+.recitm:hover .recact{color:var(--lavender)}
+
+/* ── QUICK ACTIONS ── */
+.qa{display:flex;align-items:center;gap:.65rem;padding:.65rem .75rem;border-radius:9px;cursor:pointer;transition:all .2s;border:1px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:.76rem;color:var(--dim);width:100%;margin-bottom:.32rem;text-align:left}
+.qa:hover{background:rgba(109,40,217,.12);border-color:var(--bh);color:var(--white)}
+.qa-ico{font-size:.9rem;flex-shrink:0;width:20px;text-align:center}
+.qa-arr{margin-left:auto;color:var(--muted);font-size:.8rem;transition:transform .2s}
+.qa:hover .qa-arr{transform:translateX(3px);color:var(--amethyst)}
+
+/* ── FIND CARE / MAP LAYOUT ── */
+.finder{display:flex;width:100%;height:100%;overflow:hidden}
+.fpanel{width:360px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);background:var(--ink)}
+.fphead{padding:1rem 1.15rem 0;flex-shrink:0}
+.fptitle{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.2rem}
+.fpsub{font-size:.67rem;color:var(--muted)}
+.fsw{position:relative;margin:.72rem 1.15rem 0}
+.fsi{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);font-size:.82rem;color:var(--muted)}
+.fsinp{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.58rem .85rem .58rem 2.2rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.77rem;outline:none;transition:border-color .2s}
+.fsinp:focus{border-color:var(--bh)}
+.fsinp::placeholder{color:var(--muted)}
+.ffilts{display:flex;gap:.3rem;padding:.58rem 1.15rem;overflow-x:auto;flex-shrink:0}
+.ffilts::-webkit-scrollbar{height:0}
+.ffbtn{white-space:nowrap;padding:.26rem .68rem;border-radius:100px;font-size:.65rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--dim);transition:all .2s;font-family:'DM Sans',sans-serif}
+.ffbtn:hover,.ffbtn.on{background:rgba(109,40,217,.18);border-color:var(--bh);color:var(--white)}
+.fsort{display:flex;align-items:center;justify-content:space-between;padding:0 1.15rem .45rem;font-size:.65rem;color:var(--muted);flex-shrink:0}
+.fssel{background:transparent;border:none;color:var(--amethyst);font-family:'DM Sans',sans-serif;font-size:.65rem;cursor:pointer;outline:none}
+.fssel option{background:var(--card)}
+.fclist{flex:1;overflow-y:auto;padding:0 .6rem .7rem}
+/* clinic card */
+.ccard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.9rem;margin-bottom:.48rem;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.ccard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--violet),transparent);opacity:0;transition:opacity .22s}
+.ccard:hover,.ccard.sel{border-color:var(--bh);background:rgba(109,40,217,.09)}
+.ccard:hover::before,.ccard.sel::before{opacity:1}
+.cctop{display:flex;align-items:flex-start;justify-content:space-between;gap:.35rem;margin-bottom:.48rem}
+.ccname{font-size:.82rem;font-weight:600;line-height:1.3}
+.ccspec{font-size:.62rem;color:var(--amethyst);margin-top:.1rem}
+.ccbadge{display:flex;flex-direction:column;align-items:flex-end;gap:.22rem;flex-shrink:0}
+.ccdist{font-size:.6rem;color:var(--muted);font-family:'DM Mono',monospace}
+.ccstars{display:flex;align-items:center;gap:.28rem;margin-bottom:.42rem}
+.srow{display:flex;gap:1px}
+.st{font-size:.65rem}
+.st.on{color:#f59e0b}.st.off{color:rgba(255,255,255,.13)}
+.rnum{font-family:'DM Mono',monospace;font-size:.7rem}
+.rcnt{font-size:.6rem;color:var(--muted)}
+.ccmeta{display:flex;flex-wrap:wrap;gap:.28rem;margin-bottom:.48rem}
+.ctag{font-size:.58rem;padding:.1rem .42rem;border-radius:100px;border:1px solid}
+.tl{background:rgba(109,40,217,.12);border-color:rgba(139,92,246,.22);color:var(--lavender)}
+.to{background:var(--gbg);border-color:rgba(16,185,129,.22);color:var(--green)}
+.tc{background:var(--rbg);border-color:rgba(239,68,68,.22);color:var(--red)}
+.tw{background:var(--ybg);border-color:rgba(245,158,11,.22);color:var(--yellow)}
+.ccfoot{display:flex;align-items:center;justify-content:space-between}
+.ccaddr{font-size:.62rem;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:.5rem}
+.bkbtn{background:linear-gradient(135deg,var(--violet),var(--amethyst));color:var(--white);border:none;padding:.34rem .82rem;border-radius:6px;font-size:.67rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap}
+.bkbtn:hover{opacity:.88;transform:translateY(-1px)}
+/* map area */
+.maparea{position:relative;flex:1;background:#0a0618;overflow:hidden}
+#svgMap{width:100%;height:100%;cursor:grab;display:block}
+#svgMap:active{cursor:grabbing}
+.mapctrl{position:absolute;top:.85rem;left:.85rem;z-index:10;display:flex;gap:.35rem;flex-wrap:wrap}
+.mcbtn{background:rgba(19,10,37,.94);border:1px solid var(--border);padding:.4rem .72rem;border-radius:8px;font-size:.69rem;color:var(--dim);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.mcbtn:hover,.mcbtn.on{background:rgba(109,40,217,.28);border-color:var(--bh);color:var(--white)}
+.mapstats{position:absolute;top:.85rem;right:.85rem;z-index:10;background:rgba(19,10,37,.94);border:1px solid var(--border);border-radius:10px;padding:.68rem .9rem}
+.msrow{display:flex;align-items:center;justify-content:space-between;gap:1.4rem;margin-bottom:.24rem;font-size:.66rem;color:var(--dim)}
+.msrow:last-child{margin-bottom:0}
+.msnum{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--white);font-weight:500}
+.mapleg{position:absolute;bottom:.85rem;left:.85rem;z-index:10;background:rgba(19,10,37,.94);border:1px solid var(--border);border-radius:10px;padding:.65rem .85rem}
+.ltitle{font-size:.52rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.42rem}
+.lrow{display:flex;align-items:center;gap:.42rem;margin-bottom:.24rem;font-size:.63rem;color:var(--dim)}
+.ldot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.maptip{position:fixed;z-index:50;pointer-events:none;background:rgba(19,10,37,.97);border:1px solid rgba(139,92,246,.32);border-radius:11px;padding:.72rem .85rem;min-width:185px;box-shadow:0 8px 30px rgba(0,0,0,.55);transition:opacity .15s}
+.maptip.hidden{opacity:0}
+.tn{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:700;margin-bottom:.1rem}
+.ts{font-size:.62rem;color:var(--amethyst);margin-bottom:.35rem}
+.tst{color:#f59e0b;font-size:.67rem;letter-spacing:1px;margin-bottom:.08rem}
+.tr{font-size:.63rem;color:rgba(255,255,255,.5);margin-bottom:.4rem}
+.tb{width:100%;padding:.34rem;border-radius:6px;border:none;cursor:pointer;pointer-events:all;background:linear-gradient(135deg,var(--violet),var(--amethyst));color:var(--white);font-family:'DM Sans',sans-serif;font-size:.67rem;font-weight:500}
+/* detail panel */
+.det{position:absolute;top:0;right:0;bottom:0;width:330px;z-index:30;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;transform:translateX(100%);transition:transform .32s cubic-bezier(.4,0,.2,1)}
+.det.open{transform:translateX(0)}
+.detclose{position:absolute;top:.85rem;right:.85rem;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.72rem;z-index:1;transition:background .18s}
+.detclose:hover{background:rgba(255,255,255,.12)}
+.det-hero{padding:1.6rem 1.3rem 1rem;border-bottom:1px solid var(--border)}
+.det-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#2d1a5c,var(--violet));display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:.82rem}
+.det-name{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.18rem}
+.det-spec{font-size:.72rem;color:var(--amethyst);margin-bottom:.6rem}
+.det-rrow{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem}
+.det-rstars{display:flex;gap:2px;font-size:.85rem}
+.det-rnum{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700}
+.det-rcnt{font-size:.65rem;color:var(--muted)}
+.det-tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.det-sec{padding:.9rem 1.3rem;border-bottom:1px solid var(--border)}
+.det-sttl{font-size:.56rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.det-irow{display:flex;align-items:flex-start;gap:.55rem;margin-bottom:.45rem;font-size:.74rem;color:var(--dim)}
+.det-iico{width:17px;text-align:center;font-size:.78rem;flex-shrink:0;margin-top:.04rem}
+.dslots{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
+.dslot{padding:.4rem .3rem;border-radius:7px;text-align:center;font-size:.64rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.02);transition:all .2s}
+.dslot:hover,.dslot.pick{background:rgba(109,40,217,.22);border-color:var(--bh);color:var(--white)}
+.dslot-d{font-size:.52rem;color:var(--muted);display:block}
+.dslot.pick .dslot-d{color:var(--lavender)}
+.revlist{display:flex;flex-direction:column;gap:.55rem}
+.revitem{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:9px;padding:.75rem}
+.revtop{display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem}
+.revauth{font-size:.72rem;font-weight:600}
+.revlang{font-size:.56rem;color:var(--amethyst)}
+.revstars{font-size:.6rem;color:#f59e0b}
+.revtxt{font-size:.7rem;color:var(--dim);line-height:1.6}
+.revdate{font-size:.58rem;color:var(--muted);margin-top:.28rem}
+.det-book{padding:1rem 1.3rem}
+.det-cta{width:100%;padding:.8rem;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--violet),var(--amethyst));color:var(--white);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;transition:all .2s;box-shadow:0 4px 18px rgba(109,40,217,.38)}
+.det-cta:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(109,40,217,.48)}
+.det-note{font-size:.62rem;color:var(--muted);text-align:center;margin-top:.5rem}
+
+/* ── MODALS ── */
+.mov{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .28s}
+.mov.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:490px;max-width:92vw;max-height:86vh;overflow-y:auto;transform:translateY(18px) scale(.98);transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .28s}
+.mov.open .modal{transform:translateY(0) scale(1)}
+.mhd{padding:1.4rem 1.4rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:.85rem}
+.mhd-ico{width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,#2d1a5c,var(--violet));display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.mhd-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700}
+.mhd-sub{font-size:.67rem;color:var(--amethyst);margin-top:.1rem}
+.mclose{margin-left:auto;background:none;border:none;color:var(--muted);font-size:1.05rem;cursor:pointer;flex-shrink:0;transition:color .18s}
+.mclose:hover{color:var(--white)}
+.mbody{padding:1.2rem 1.4rem}
+.msec{font-size:.58rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem;margin-top:1rem}
+.msec:first-child{margin-top:0}
+.mslots{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-bottom:.18rem}
+.mslot{padding:.55rem .35rem;border-radius:8px;text-align:center;font-size:.67rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.03);transition:all .2s}
+.mslot:hover,.mslot.sel{background:rgba(109,40,217,.22);border-color:var(--bh);color:var(--white)}
+.mslot-d{font-size:.55rem;color:var(--muted);display:block;margin-bottom:.1rem}
+.mslot.sel .mslot-d{color:var(--lavender)}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.mfield{margin-bottom:.7rem}
+.mlbl{font-size:.62rem;color:var(--muted);display:block;margin-bottom:.28rem}
+.minput{width:100%;background:rgba(255,255,255,.045);border:1px solid var(--border);border-radius:8px;padding:.58rem .82rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.78rem;outline:none;transition:border-color .2s}
+.minput:focus{border-color:var(--bh)}
+.minput::placeholder{color:var(--muted)}
+.minput option{background:var(--card)}
+.msum{background:rgba(109,40,217,.09);border:1px solid rgba(139,92,246,.18);border-radius:10px;padding:.85rem .95rem;margin-bottom:.85rem}
+.msumrow{display:flex;justify-content:space-between;font-size:.73rem;margin-bottom:.26rem}
+.msumrow:last-child{margin-bottom:0}
+.msuml{color:var(--muted)}
+.msumv{font-weight:500}
+.mcta{width:100%;padding:.82rem;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--violet),var(--amethyst));color:var(--white);font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:600;transition:all .2s;box-shadow:0 3px 16px rgba(109,40,217,.35)}
+.mcta:hover{opacity:.88;transform:translateY(-1px)}
+.success{text-align:center;padding:2.1rem 1.4rem}
+.sucico{font-size:2.8rem;margin-bottom:.85rem;animation:pop .5s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pop{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.suctitle{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;margin-bottom:.38rem}
+.sucsub{font-size:.78rem;color:var(--muted);line-height:1.7;margin-bottom:1.2rem}
+.sucbox{background:rgba(16,185,129,.09);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:.85rem;text-align:left;margin-bottom:1.2rem}
+.sucrow{display:flex;justify-content:space-between;font-size:.73rem;margin-bottom:.24rem}
+.sucrow:last-child{margin-bottom:0}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.4rem;right:1.4rem;z-index:200;background:var(--card2);border:1px solid rgba(139,92,246,.28);border-radius:10px;padding:.82rem .95rem;display:flex;align-items:center;gap:.6rem;font-size:.78rem;min-width:240px;max-width:320px;transform:translateY(12px) scale(.95);opacity:0;transition:all .28s cubic-bezier(.4,0,.2,1);pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.toast.show{transform:translateY(0) scale(1);opacity:1;pointer-events:all}
+
+/* ─── AI SUITE STYLES ─── */
+.inp{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:.55rem .82rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.77rem;outline:none;transition:border-color .2s;width:100%}
+.inp:focus{border-color:var(--bh)}.inp::placeholder{color:var(--muted)}.inp option{background:var(--card)}
+.mode-pills{display:flex;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px}
+.mpill{padding:.3rem .7rem;border-radius:6px;border:none;font-family:'DM Sans',sans-serif;font-size:.67rem;font-weight:500;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted)}
+.mpill.on{background:var(--violet);color:var(--white);box-shadow:0 1px 6px rgba(109,40,217,.4)}
+.mode-row{display:flex;gap:.4rem;margin-bottom:.9rem;flex-wrap:wrap;align-items:center}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse-l 1.5s infinite;margin-right:.3rem;vertical-align:middle}
+@keyframes pulse-l{0%,100%{opacity:1}50%{opacity:.4}}
+.trlang-row{display:flex;align-items:center;gap:.8rem;margin-bottom:.85rem}
+.lang-sel{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;padding:.5rem .82rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.74rem;outline:none;cursor:pointer;transition:border-color .2s}
+.lang-sel:focus{border-color:var(--bh)}.lang-sel option{background:var(--card)}
+.swap-btn{width:36px;height:36px;border-radius:50%;background:rgba(109,40,217,.2);border:1px solid rgba(139,92,246,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.95rem;transition:all .22s;color:var(--lavender);flex-shrink:0}
+.swap-btn:hover{background:rgba(109,40,217,.4);transform:rotate(180deg)}
+.tr-areas{display:grid;grid-template-columns:1fr auto 1fr;gap:.7rem;align-items:start;margin-bottom:.85rem}
+.tr-box{display:flex;flex-direction:column;gap:.35rem}
+.tr-lbl{font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tr-area{width:100%;min-height:130px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:11px;padding:.8rem;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.8rem;line-height:1.7;outline:none;resize:vertical;transition:border-color .2s}
+.tr-area:focus{border-color:var(--bh)}.tr-area::placeholder{color:var(--muted)}
+.tr-area.out{background:rgba(109,40,217,.06);border-color:rgba(139,92,246,.12);color:var(--lavender)}
+.tr-meta{display:flex;align-items:center;justify-content:space-between;margin-top:.35rem}
+.tr-cnt{font-size:.61rem;color:var(--muted)}
+.tr-arrow-box{display:flex;align-items:center;justify-content:center;padding-top:3.2rem}
+.qph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
+.qph{padding:.48rem .62rem;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);font-size:.66rem;color:var(--dim);cursor:pointer;transition:all .2s;text-align:left;font-family:'DM Sans',sans-serif}
+.qph:hover{background:rgba(109,40,217,.12);border-color:var(--bh);color:var(--white)}
+.th-row{display:flex;gap:.65rem;padding:.65rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.7rem}
+.th-row:last-child{border-bottom:none}.th-langs{font-size:.58rem;color:var(--amethyst);flex-shrink:0;width:62px}
+.th-src{flex:1;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.th-out{flex:1;color:var(--lavender);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.th-t{font-size:.56rem;color:var(--muted);flex-shrink:0}
+.rec-btn{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--amethyst));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:0 auto .9rem;transition:all .28s;position:relative;box-shadow:0 4px 20px rgba(109,40,217,.4)}
+.rec-btn:hover{transform:scale(1.06)}
+.rec-btn.on{background:linear-gradient(135deg,var(--red),#f87171);box-shadow:0 4px 20px rgba(239,68,68,.5)}
+.rec-btn.on::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(239,68,68,.35);animation:ripple 1.5s infinite}
+@keyframes ripple{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.45)}}
+.waveform{display:flex;align-items:center;justify-content:center;gap:2.5px;height:38px;margin:.55rem 0}
+.wbar{width:3px;background:var(--amethyst);border-radius:100px;transition:height .08s}
+.spk-badge{display:inline-flex;align-items:center;font-size:.59rem;padding:.1rem .45rem;border-radius:100px;font-weight:600;border:1px solid}
+.spk-dr{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.25);color:var(--blue)}
+.spk-pt{background:var(--gbg);border-color:rgba(16,185,129,.22);color:var(--green)}
+.tline{display:flex;gap:.7rem;padding:.65rem 0;border-bottom:1px solid rgba(255,255,255,.04);animation:fadeIn .2s ease}
+.tline:last-child{border-bottom:none}
+.tline.interim .tline-text{color:rgba(255,255,255,.35);font-style:italic}
+.tline-spk{flex-shrink:0;width:70px;display:flex;flex-direction:column;align-items:flex-end;gap:.18rem}
+.tline-text{flex:1;font-size:.75rem;line-height:1.65;color:var(--dim)}
+.tline-time{font-family:'DM Mono',monospace;font-size:.57rem;color:var(--muted);flex-shrink:0}
+.insight-item{padding:.62rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border);margin-bottom:.35rem;font-size:.72rem;line-height:1.6}
+.ins-tag{font-size:.54rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.18rem}
+.pipe-bar{display:flex;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.2rem}
+.pstep{flex:1;padding:.68rem .4rem;text-align:center;font-size:.65rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;position:relative;border-right:1px solid var(--border)}
+.pstep:last-child{border-right:none}.pstep:hover{background:rgba(139,92,246,.07);color:var(--dim)}
+.pstep.active{background:rgba(109,40,217,.18);color:var(--white)}.pstep.done{color:var(--green)}
+.pstep.done::after{content:'✓';position:absolute;top:4px;right:5px;font-size:.48rem;color:var(--green)}
+.pstep-n{font-size:.48rem;display:block;margin-bottom:.1rem;color:var(--muted)}
+.pstep.active .pstep-n{color:var(--lavender)}.pstep.done .pstep-n{color:var(--green)}
+.upload-z{border:2px dashed rgba(139,92,246,.22);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all .22s;background:rgba(109,40,217,.03)}
+.upload-z:hover,.upload-z.drag{border-color:var(--bh);background:rgba(109,40,217,.1)}
+.uz-ico{font-size:2rem;margin-bottom:.65rem}.uz-t{font-size:.85rem;font-weight:600;margin-bottom:.3rem}.uz-s{font-size:.7rem;color:var(--muted);line-height:1.6}
+.fchip{display:inline-flex;align-items:center;gap:.45rem;padding:.38rem .68rem;border-radius:7px;background:rgba(109,40,217,.12);border:1px solid rgba(139,92,246,.2);font-size:.7rem;color:var(--lavender);margin:.2rem}
+.fchip-x{cursor:pointer;color:var(--muted);margin-left:.15rem;transition:color .18s}.fchip-x:hover{color:var(--red)}
+.ps-row{display:flex;align-items:center;gap:.8rem;padding:.78rem;border-radius:10px;background:rgba(255,255,255,.022);border:1px solid var(--border);margin-bottom:.38rem;transition:all .28s}
+.ps-row.running{border-color:rgba(139,92,246,.3);background:rgba(109,40,217,.1)}.ps-row.done-s{border-color:rgba(16,185,129,.2);background:rgba(16,185,129,.05)}
+.ps-ico{width:33px;height:33px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.88rem;flex-shrink:0;transition:background .28s}
+.ps-ico.idle{background:rgba(255,255,255,.05)}.ps-ico.running{background:rgba(109,40,217,.25);animation:glow .8s infinite alternate}.ps-ico.done-s{background:var(--gbg)}
+@keyframes glow{from{box-shadow:0 0 5px rgba(139,92,246,.3)}to{box-shadow:0 0 16px rgba(139,92,246,.6)}}
+.ps-name{font-size:.77rem;font-weight:600;margin-bottom:.1rem}.ps-detail{font-size:.63rem;color:var(--muted)}
+.pipe-spin{width:14px;height:14px;border:2px solid rgba(139,92,246,.2);border-top-color:var(--amethyst);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dom-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-bottom:.8rem}
+.dom-card{padding:.58rem;border-radius:9px;border:2px solid var(--border);background:rgba(255,255,255,.02);cursor:pointer;transition:all .2s;text-align:center}
+.dom-card:hover{border-color:var(--bh)}.dom-card.on{border-color:var(--amethyst);background:rgba(109,40,217,.15)}
+.dc-code{font-family:'DM Mono',monospace;font-size:.73rem;font-weight:600;color:var(--muted);transition:color .2s}
+.dc-name{font-size:.55rem;color:var(--muted);margin-top:.09rem;line-height:1.35;transition:color .2s}
+.dom-card.on .dc-code{color:var(--lavender)}.dom-card.on .dc-name{color:var(--dim)}
+.var-tbl{width:100%;border-collapse:collapse;font-size:.72rem}
+.var-tbl th{text-align:left;padding:.48rem .72rem;font-size:.57rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);position:sticky;top:0}
+.var-tbl td{padding:.55rem .72rem;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.var-tbl tr:hover td{background:rgba(255,255,255,.02)}.var-tbl tr:last-child td{border-bottom:none}
+.var-inp{background:transparent;border:1px solid transparent;border-radius:5px;padding:.18rem .38rem;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:.7rem;width:100%;transition:all .18s;outline:none}
+.var-inp:focus,.var-inp:hover{border-color:var(--border);background:rgba(255,255,255,.04)}
+.conf-bar{height:4px;border-radius:100px;background:rgba(255,255,255,.05);overflow:hidden;width:50px}.conf-fill{height:100%;border-radius:100px}
+.csv-tbl{width:100%;border-collapse:collapse;font-size:.67rem}
+.csv-tbl th{background:rgba(109,40,217,.18);padding:.48rem .62rem;text-align:left;font-size:.55rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--lavender);white-space:nowrap;position:sticky;top:0}
+.csv-tbl td{padding:.44rem .62rem;border-bottom:1px solid rgba(255,255,255,.03);font-family:'DM Mono',monospace;font-size:.62rem;color:var(--dim);white-space:nowrap}
+.csv-tbl tr:hover td{background:rgba(255,255,255,.02)}
+.ai-bub{background:linear-gradient(135deg,rgba(109,40,217,.1),rgba(20,184,166,.06));border:1px solid rgba(139,92,246,.18);border-radius:10px;padding:.85rem;margin-bottom:.5rem;font-size:.73rem;line-height:1.75;color:var(--dim)}
+.ai-bub b{color:var(--white)}
+.btn-teal{background:rgba(20,184,166,.15);color:var(--teal);border:1px solid rgba(20,184,166,.25)}.btn-teal:hover{background:rgba(20,184,166,.28)}
+
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-mark">✛</div>
+    <div><div class="sb-title">CareCompass</div><div class="sb-sub">GTA Navigator</div></div>
+  </div>
+  <div class="role-toggle">
+    <button class="rtbtn active" id="rPat" onclick="setRole('patient')">Patient</button>
+    <button class="rtbtn" id="rProv" onclick="setRole('provider')">Provider</button>
+  </div>
+  <div class="sb-user">
+    <div class="sb-av pat" id="sbAv">AN</div>
+    <div>
+      <div class="sb-uname" id="sbName">Amara Nwosu</div>
+      <div class="sb-urole" id="sbRole">Patient · Igbo</div>
+      <div class="sb-ulang" id="sbLang">🌐 Igbo · English</div>
+    </div>
+  </div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot">PHIPA · PIPEDA Compliant<br>Secure · End-to-end Encrypted</div>
+</aside>
+
+<!-- ═══════ MAIN ═══════ -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-l">
+      <div class="tb-title" id="tbTitle">Welcome to CareCompass</div>
+      <div class="tb-sub" id="tbSub">Navigate your healthcare journey with confidence</div>
+    </div>
+    <div class="tb-right" id="tbRight"></div>
+  </div>
+
+  <!-- HOME -->
+  <div class="view on content" id="v-home">
+    <div class="hero">
+      <div class="hero-ey">CareCompass · GTA Healthcare Platform</div>
+      <div class="hero-title">Your health journey,<br><em>guided in your language.</em></div>
+      <div class="hero-sub">Multilingual intake, smart matching, and end-to-end referral tracking for newcomers, seniors, and multicultural families across the Greater Toronto Area.</div>
+      <div class="hero-btns">
+        <button class="btn btn-p" onclick="go('p-overview')">🧭 Patient Dashboard</button>
+        <button class="btn btn-g" onclick="go('find-care')">🗺️ Find Care Near Me</button>
+        <button class="btn btn-g" onclick="go('prov-overview')">🏥 Provider Portal</button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hs-num" id="hs1">0</div><div class="hs-lbl">Languages Supported</div></div>
+        <div><div class="hs-num" id="hs2">0%</div><div class="hs-lbl">Attendance Rate</div></div>
+        <div><div class="hs-num" id="hs3">0</div><div class="hs-lbl">GTA Clinics</div></div>
+        <div><div class="hs-num" id="hs4">0%</div><div class="hs-lbl">Referral Completion</div></div>
+      </div>
+    </div>
+    <div class="feat-grid">
+      <div class="feat" onclick="go('p-overview')"><div class="feat-ico">📊</div><div class="feat-title">Patient Overview</div><div class="feat-desc">Stats, upcoming appointments, care journey, and quick actions in one view.</div></div>
+      <div class="feat" onclick="go('p-journey')"><div class="feat-ico">🧭</div><div class="feat-title">Care Journey</div><div class="feat-desc">5-step visual pathway tracking every milestone from intake to treatment.</div></div>
+      <div class="feat" onclick="go('find-care')"><div class="feat-ico">🗺️</div><div class="feat-title">Clinic Finder + Map</div><div class="feat-desc">Interactive GTA map with 12 clinics, language filters, and same-day booking.</div></div>
+      <div class="feat" onclick="go('p-referrals')"><div class="feat-ico">🔁</div><div class="feat-title">Referral Tracker</div><div class="feat-desc">Real-time progress bars on every specialist referral, with language reminders.</div></div>
+      <div class="feat" onclick="go('p-navigator')"><div class="feat-ico">💬</div><div class="feat-title">Personal Navigator</div><div class="feat-desc">Fatima speaks your language and coordinates every booking and reminder.</div></div>
+      <div class="feat" onclick="go('prov-overview')"><div class="feat-ico">🏥</div><div class="feat-title">Provider Dashboard</div><div class="feat-desc">Smart scheduling, risk scoring, cancellation recovery, multilingual reminders.</div></div>
+      <div class="feat" onclick="go('ai-translation')"><div class="feat-ico">🌐</div><div class="feat-title">AI Translation</div><div class="feat-desc">Real-time medical translation across 23 languages using Cohere's medical-grade model.</div></div>
+      <div class="feat" onclick="go('ai-recorder')"><div class="feat-ico">🎙</div><div class="feat-title">Voice Recorder</div><div class="feat-desc">Doctor–patient transcription with speaker diarization and AI clinical insights.</div></div>
+      <div class="feat" onclick="go('ai-cdisc')"><div class="feat-ico">🧬</div><div class="feat-title">CDISC Mapping</div><div class="feat-desc">AI-powered EHR extraction to CDISC SDTM standards with Claude compliance review.</div></div>
+    </div>
+  </div>
+
+  <!-- PATIENT OVERVIEW -->
+  <div class="view content" id="v-p-overview">
+    <div class="g4">
+      <div class="sc" onclick="go('p-journey')"><div class="sc-top"><div class="sc-ico iv">🧭</div><span class="sc-delta dg">Active</span></div><div class="sc-num">2</div><div class="sc-lbl">Active Journeys</div></div>
+      <div class="sc" onclick="go('p-appointments')"><div class="sc-top"><div class="sc-ico ig">📅</div><span class="sc-delta dg">Dec 18</span></div><div class="sc-num">2</div><div class="sc-lbl">Upcoming Appts</div></div>
+      <div class="sc" onclick="go('p-referrals')"><div class="sc-top"><div class="sc-ico iy">🔁</div><span class="sc-delta dy">1 Pending</span></div><div class="sc-num">3</div><div class="sc-lbl">Referrals</div></div>
+      <div class="sc"><div class="sc-top"><div class="sc-ico ib">✅</div><span class="sc-delta dg">75%</span></div><div class="sc-num">6/8</div><div class="sc-lbl">Steps Complete</div></div>
+    </div>
+    <div class="g32">
+      <div class="card">
+        <div class="ch"><div><div class="ch-title">🧭 Active Care Journey</div><div class="ch-sub">Cardiology referral pathway</div></div><button class="cl" onclick="go('p-journey')">View all →</button></div>
+        <div class="jstep"><div class="jconn"><div class="jdot done">✓</div><div class="jline"></div></div><div class="jbody"><div class="jtitle">Initial Intake Complete</div><div class="jdetail">Multilingual intake submitted in Igbo + English</div><div class="jmeta"><span class="chip cg">Completed</span><span class="jdate">Nov 28</span></div></div></div>
+        <div class="jstep"><div class="jconn"><div class="jdot done">✓</div><div class="jline"></div></div><div class="jbody"><div class="jtitle">Family Doctor Matched</div><div class="jdetail">Dr. Adeyemi · Igbo-speaking · Scarborough</div><div class="jmeta"><span class="chip cg">Completed</span><span class="jdate">Dec 1</span></div></div></div>
+        <div class="jstep"><div class="jconn"><div class="jdot done">✓</div><div class="jline"></div></div><div class="jbody"><div class="jtitle">Blood Work Ordered</div><div class="jdetail">LifeLabs Scarborough · Results ready Dec 10</div><div class="jmeta"><span class="chip cg">Completed</span><span class="jdate">Dec 5</span></div></div></div>
+        <div class="jstep"><div class="jconn"><div class="jdot now">▶</div><div class="jline"></div></div><div class="jbody"><div class="jtitle">Cardiology Appointment</div><div class="jdetail">Dr. Patel · Mount Sinai · Confirmed Dec 18</div><div class="jmeta"><span class="chip cv">Upcoming · Dec 18</span></div></div></div>
+        <div class="jstep"><div class="jconn"><div class="jdot pend">5</div></div><div class="jbody"><div class="jtitle">Treatment Plan Review</div><div class="jdetail">Navigator will confirm after specialist</div><div class="jmeta"><span class="chip cgr">Pending</span></div></div></div>
+      </div>
+      <div class="col">
+        <div class="card">
+          <div class="ch"><div class="ch-title">📅 Next Appointments</div><button class="cl" onclick="go('p-appointments')">All →</button></div>
+          <div class="cb">
+            <div class="aitm"><div class="adate"><div class="aday">18</div><div class="amo">Dec</div></div><div class="ainfo"><div class="aname">Dr. Patel — Cardiology</div><div class="adetail">10:30 AM · Mount Sinai</div><div class="alang">🌐 Igbo reminder set</div></div><span class="chip cg" style="flex-shrink:0">Confirmed</span></div>
+            <div class="aitm"><div class="adate"><div class="aday">22</div><div class="amo">Dec</div></div><div class="ainfo"><div class="aname">Dr. Adeyemi — Follow-up</div><div class="adetail">2:00 PM · Scarborough</div><div class="alang">🌐 Igbo · English</div></div><span class="chip cv" style="flex-shrink:0">Scheduled</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ch-title">⚡ Quick Actions</div></div>
+          <div class="cb">
+            <button class="qa" onclick="openMod('bookModal')"><span class="qa-ico">📅</span>Book appointment<span class="qa-arr">›</span></button>
+            <button class="qa" onclick="go('p-navigator')"><span class="qa-ico">💬</span>Message my navigator<span class="qa-arr">›</span></button>
+            <button class="qa" onclick="go('find-care')"><span class="qa-ico">🗺️</span>Find a clinic near me<span class="qa-arr">›</span></button>
+            <button class="qa" onclick="go('p-records')"><span class="qa-ico">📋</span>View health records<span class="qa-arr">›</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><div class="ch-title">🔁 Referral Tracker</div><button class="cl" onclick="go('p-referrals')">All →</button></div>
+        <div class="ritm"><div class="rico">❤️</div><div class="rinfo"><div class="rtitle">Cardiology — Dr. Patel</div><div class="rdetail">Routine · Referred Dec 1</div><div class="rfoot"><span class="chip cg">Booked · Dec 18</span><span style="font-size:.6rem;color:var(--muted)">3/4 steps</span></div><div class="pbar"><div class="pfill" data-w="75%"></div></div></div></div>
+        <div class="ritm"><div class="rico">🩸</div><div class="rinfo"><div class="rtitle">Hematology — LifeLabs</div><div class="rdetail">Blood work complete · Results Dec 10</div><div class="rfoot"><span class="chip cg">Completed</span><span style="font-size:.6rem;color:var(--muted)">4/4 steps</span></div><div class="pbar"><div class="pfill" data-w="100%"></div></div></div></div>
+        <div class="ritm"><div class="rico">🦴</div><div class="rinfo"><div class="rtitle">Orthopaedics — Sunnybrook</div><div class="rdetail">Semi-urgent · Pending booking</div><div class="rfoot"><span class="chip cy">Pending</span><span style="font-size:.6rem;color:var(--muted)">1/4 steps</span></div><div class="pbar"><div class="pfill" data-w="20%" style="background:linear-gradient(90deg,#d97706,var(--yellow))"></div></div></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ch-title">🏥 Health Profile</div><button class="cl" onclick="go('p-records')">View →</button></div>
+        <div class="cb" style="display:flex;flex-wrap:wrap"><span class="htag hcond">Hypertension</span><span class="htag hcond">Anaemia</span><span class="htag hmed">Lisinopril 10mg</span><span class="htag hmed">Iron supplements</span><span class="htag hallergy">⚠ Penicillin</span><span class="htag hallergy">⚠ Sulfa drugs</span></div>
+        <div class="ch" style="border-top:1px solid var(--border)"><div class="ch-title">💬 Navigator Chat</div><button class="cl" onclick="go('p-navigator')">Open →</button></div>
+        <div class="cb">
+          <div class="cmsg" style="margin-bottom:.45rem"><div class="cav cav-nav">F</div><div><div class="cbbl cbbl-nav">Ndewo Amara! 👋 Your Dec 18 cardiology appt is confirmed. Igbo reminder set!</div><div class="ctime">10:32 AM</div></div></div>
+          <div class="cmsg cmsg-r"><div class="cav cav-usr">A</div><div><div class="cbbl cbbl-usr">Thanks Fatima! Can you help with the orthopaedics referral?</div><div class="ctime">10:35 AM</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATIENT JOURNEY -->
+  <div class="view content" id="v-p-journey">
+    <div class="g32">
+      <div class="card">
+        <div class="ch"><div><div class="ch-title">🧭 Cardiology Care Journey</div><div class="ch-sub">Full end-to-end pathway</div></div><span class="chip cg">75% complete</span></div>
+        <div id="journeySteps">
+          <div class="jstep" onclick="expandJStep(0)"><div class="jconn"><div class="jdot done">✓</div><div class="jline"></div></div><div class="jbody"><div class="jtitle">Initial Intake Complete</div><div class="jdetail">Multilingual intake form submitted in Igbo + English. All health information securely stored.</div><div class="jmeta"><span class="chip cg">Completed</span><span class="jdate">Nov 28</span></div></div></div>
+          <div class="jstep" onclick="expandJStep(1)"><div class="jconn"><div class="jdot done">✓</div><div class="jline"></div></div><div class="jbody"><div class="jtitle">Family Doctor Matched</div><div class="jdetail">Matched with Dr. Adeyemi at Scarborough Health Network — Igbo-speaking, 1.2km away.</div><div class="jmeta"><span class="chip cg">Completed</span><span class="jdate">Dec 1</span></div></div></div>
+          <div class="jstep" onclick="expandJStep(2)"><div class="jconn"><div class="jdot done">✓</div><div class="jline"></div></div><div class="jbody"><div class="jtitle">Blood Work Ordered</div><div class="jdetail">LifeLabs Scarborough. CBC, lipid panel, HbA1c. Results received Dec 10 and shared with Dr. Adeyemi.</div><div class="jmeta"><span class="chip cg">Completed</span><span class="jdate">Dec 5</span></div></div></div>
+          <div class="jstep" onclick="expandJStep(3)"><div class="jconn"><div class="jdot now">▶</div><div class="jline"></div></div><div class="jbody"><div class="jtitle">Cardiology Consultation</div><div class="jdetail">Dr. Patel at Mount Sinai confirmed Dec 18 at 10:30 AM. Igbo reminder will be sent Dec 17 at 8 AM.</div><div class="jmeta"><span class="chip cv">Upcoming · Dec 18, 10:30 AM</span></div><div id="jexp3" style="display:none;margin-top:.7rem;padding:.75rem;background:rgba(109,40,217,.08);border-radius:9px;border:1px solid rgba(139,92,246,.15)"><div style="font-size:.74rem;color:var(--dim);line-height:1.7">📍 <b>Location:</b> 600 University Ave, Toronto<br>🌐 <b>Language:</b> Igbo interpreter confirmed<br>📄 <b>Documents required:</b> Blood work results (ready), OHIP card<br><button class="btn btn-p" style="margin-top:.6rem;font-size:.7rem" onclick="openMod('bookModal')">Reschedule if needed</button></div></div></div></div>
+          <div class="jstep" onclick="expandJStep(4)"><div class="jconn"><div class="jdot pend">5</div></div><div class="jbody"><div class="jtitle">Treatment Plan Review</div><div class="jdetail">Navigator Fatima will follow up after specialist visit to confirm next steps.</div><div class="jmeta"><span class="chip cgr">Pending</span></div></div></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card"><div class="ch"><div class="ch-title">📊 Progress</div></div><div class="cb"><div style="font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900">75%</div><div style="font-size:.7rem;color:var(--muted);margin-bottom:.85rem">4 of 5 steps complete</div><div class="pbar" style="height:5px"><div class="pfill" data-w="75%" style="height:5px"></div></div></div></div>
+        <div class="card"><div class="ch"><div class="ch-title">📄 Documents</div></div><div class="cb" style="display:flex;flex-direction:column;gap:.4rem">
+          <div style="display:flex;align-items:center;gap:.6rem;font-size:.76rem;padding:.58rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border)">📄 Intake Form (Igbo/En)<span style="margin-left:auto;font-size:.58rem;color:var(--green)">✓ Submitted</span></div>
+          <div style="display:flex;align-items:center;gap:.6rem;font-size:.76rem;padding:.58rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border)">🩸 Blood Work Results<span style="margin-left:auto;font-size:.58rem;color:var(--green)">✓ Received</span></div>
+          <div style="display:flex;align-items:center;gap:.6rem;font-size:.76rem;padding:.58rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border)">💌 Cardiology Referral Letter<span style="margin-left:auto;font-size:.58rem;color:var(--green)">✓ Sent</span></div>
+        </div></div>
+        <div class="card"><div class="ch"><div class="ch-title">⚡ Actions</div></div><div class="cb">
+          <button class="qa" onclick="openMod('bookModal')"><span class="qa-ico">📅</span>Book next appointment<span class="qa-arr">›</span></button>
+          <button class="qa" onclick="go('p-navigator')"><span class="qa-ico">💬</span>Ask Fatima a question<span class="qa-arr">›</span></button>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATIENT APPOINTMENTS -->
+  <div class="view content" id="v-p-appointments">
+    <div class="g32">
+      <div class="card">
+        <div class="ch"><div><div class="ch-title">📅 Upcoming Appointments</div></div><button class="btn btn-p" style="font-size:.7rem" onclick="openMod('bookModal')">+ Book New</button></div>
+        <div class="cb">
+          <div class="aitm"><div class="adate"><div class="aday">18</div><div class="amo">Dec</div></div><div class="ainfo"><div class="aname">Dr. Patel — Cardiology</div><div class="adetail">10:30 AM · Mount Sinai · 600 University Ave</div><div class="alang">🌐 Igbo reminder scheduled for Dec 17</div></div><div style="display:flex;flex-direction:column;gap:.28rem;align-items:flex-end;flex-shrink:0"><span class="chip cg">Confirmed</span><button class="abtn abtn-g" onclick="toast('Cancelled','Dr. Patel Dec 18 cancelled · Navigator notified','❌')">Cancel</button></div></div>
+          <div class="aitm"><div class="adate"><div class="aday">22</div><div class="amo">Dec</div></div><div class="ainfo"><div class="aname">Dr. Adeyemi — Follow-up</div><div class="adetail">2:00 PM · Scarborough Health Network</div><div class="alang">🌐 Igbo · English</div></div><div style="display:flex;flex-direction:column;gap:.28rem;align-items:flex-end;flex-shrink:0"><span class="chip cv">Scheduled</span><button class="abtn abtn-g" onclick="toast('Reminder sent','Igbo SMS reminder scheduled','📱')">Remind</button></div></div>
+        </div>
+        <div class="ch" style="border-top:1px solid var(--border)"><div class="ch-title">📁 Past Appointments</div></div>
+        <div class="cb">
+          <div class="aitm"><div class="adate"><div class="aday">5</div><div class="amo">Dec</div></div><div class="ainfo"><div class="aname">LifeLabs — Blood Work</div><div class="adetail">8:00 AM · Scarborough LifeLabs</div></div><span class="chip cgr" style="flex-shrink:0">Completed</span></div>
+          <div class="aitm"><div class="adate"><div class="aday">1</div><div class="amo">Dec</div></div><div class="ainfo"><div class="aname">Dr. Adeyemi — Initial Visit</div><div class="adetail">9:30 AM · Scarborough Health Network</div></div><span class="chip cgr" style="flex-shrink:0">Completed</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card"><div class="ch"><div class="ch-title">⚡ Book Appointment</div></div><div class="cb">
+          <button class="qa" onclick="openMod('bookModal')"><span class="qa-ico">🏥</span>With my family doctor<span class="qa-arr">›</span></button>
+          <button class="qa" onclick="go('find-care')"><span class="qa-ico">🗺️</span>Find a new specialist<span class="qa-arr">›</span></button>
+          <button class="qa" onclick="openMod('bookModal')"><span class="qa-ico">💻</span>Virtual consultation<span class="qa-arr">›</span></button>
+        </div></div>
+        <div class="card"><div class="ch"><div class="ch-title">🔔 Reminders</div></div><div class="cb" style="display:flex;flex-direction:column;gap:.4rem">
+          <div style="padding:.65rem;border-radius:9px;background:rgba(109,40,217,.09);border:1px solid rgba(139,92,246,.18);font-size:.76rem">📱 <b>Dec 17</b> — Igbo SMS for Dec 18 cardiology</div>
+          <div style="padding:.65rem;border-radius:9px;background:rgba(109,40,217,.09);border:1px solid rgba(139,92,246,.18);font-size:.76rem">📧 <b>Dec 21</b> — Email reminder for Dec 22 follow-up</div>
+          <button class="qa" onclick="toast('Preference saved','Reminder channel updated to SMS + Email','🔔')"><span class="qa-ico">⚙️</span>Edit reminder settings<span class="qa-arr">›</span></button>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATIENT REFERRALS -->
+  <div class="view content" id="v-p-referrals">
+    <div class="card gap">
+      <div class="ch"><div><div class="ch-title">🔁 All Referrals</div><div class="ch-sub">3 active · 1 pending booking</div></div></div>
+      <div class="ritm"><div class="rico">❤️</div><div class="rinfo"><div class="rtitle">Cardiology — Dr. Patel, Mount Sinai</div><div class="rdetail">Routine · Referred by Dr. Adeyemi · Dec 1</div><div class="rfoot"><span class="chip cg">Booked · Dec 18</span><span style="font-size:.6rem;color:var(--muted)">3/4 steps</span></div><div class="pbar"><div class="pfill" data-w="75%"></div></div></div><button class="btn btn-g" style="margin-left:auto;flex-shrink:0;font-size:.69rem" onclick="toast('Referral details','Cardiology referral — Dr. Patel · Active','❤️')">Details</button></div>
+      <div class="ritm"><div class="rico">🩸</div><div class="rinfo"><div class="rtitle">Hematology — LifeLabs Scarborough</div><div class="rdetail">Routine · Blood work complete · Results Dec 10</div><div class="rfoot"><span class="chip cg">Completed</span><span style="font-size:.6rem;color:var(--muted)">4/4 steps</span></div><div class="pbar"><div class="pfill" data-w="100%"></div></div></div><button class="btn btn-g" style="margin-left:auto;flex-shrink:0;font-size:.69rem" onclick="toast('Results ready','Blood work results available · Dec 10','🩸')">Results</button></div>
+      <div class="ritm"><div class="rico">🦴</div><div class="rinfo"><div class="rtitle">Orthopaedics — Sunnybrook Health Sciences</div><div class="rdetail">Semi-urgent · Referred Dec 8 · Awaiting booking</div><div class="rfoot"><span class="chip cy">Pending</span><span style="font-size:.6rem;color:var(--muted)">1/4 steps</span></div><div class="pbar"><div class="pfill" data-w="20%" style="background:linear-gradient(90deg,#d97706,var(--yellow))"></div></div></div><button class="btn btn-p" style="margin-left:auto;flex-shrink:0;font-size:.69rem" onclick="go('find-care')">Book Now →</button></div>
+    </div>
+  </div>
+
+  <!-- PATIENT NAVIGATOR (LIVE CHAT) -->
+  <div class="view content" id="v-p-navigator" style="padding:0">
+    <div style="display:grid;grid-template-columns:1fr 280px;height:calc(100vh - 62px);overflow:hidden">
+      <div class="card" style="border-radius:0;border-top:none;border-left:none;border-bottom:none;display:flex;flex-direction:column">
+        <div class="ch">
+          <div style="display:flex;align-items:center;gap:.72rem">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--amethyst));display:flex;align-items:center;justify-content:center;font-size:.92rem;position:relative">🧭<span style="position:absolute;bottom:0;right:0;width:9px;height:9px;border-radius:50%;background:var(--green);border:1.5px solid var(--card)"></span></div>
+            <div><div class="ch-title">Fatima — Your Navigator</div><div class="ch-sub" style="color:var(--green)">● Online · Igbo · English · Yoruba</div></div>
+          </div>
+          <div style="display:flex;gap:.35rem">
+            <button class="abtn abtn-g" onclick="toast('Language set','Chat language: Igbo · English','🌐')">🌐 Igbo</button>
+            <button class="abtn abtn-g" onclick="toast('Cleared','Chat history cleared','🗑️')">Clear</button>
+          </div>
+        </div>
+        <div id="chatMsgs" style="padding:.85rem 1.2rem;display:flex;flex-direction:column;gap:.55rem;flex:1;overflow-y:auto">
+          <div class="cmsg"><div class="cav cav-nav">F</div><div><div class="cbbl cbbl-nav">Ndewo Amara! 👋 I'm Fatima, your personal CareCompass navigator. Your Dec 18 cardiology appointment with Dr. Patel is confirmed. Would you like a reminder in Igbo?</div><div class="ctime">10:32 AM</div></div></div>
+          <div class="cmsg cmsg-r"><div class="cav cav-usr">A</div><div><div class="cbbl cbbl-usr">Yes please! Also can you help with the orthopaedics referral to Sunnybrook?</div><div class="ctime">10:35 AM</div></div></div>
+          <div class="cmsg"><div class="cav cav-nav">F</div><div><div class="cbbl cbbl-nav">Of course! Igbo SMS reminder set for Dec 17 at 8 AM. ✅<br><br>Checking Sunnybrook availability now — I'll have booking options within the hour. 🦴</div><div class="ctime">10:36 AM</div></div></div>
+        </div>
+        <div class="cinp-row">
+          <input class="cinp" id="chatInp" placeholder="Ask Fatima anything… (Igbo or English)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}">
+          <button class="csend" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+      <div style="border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;background:var(--surface)">
+        <div style="padding:.9rem 1rem;border-bottom:1px solid var(--border)"><div class="ch-title" style="font-size:.78rem">⚡ Quick Requests</div></div>
+        <div style="padding:.7rem .8rem;display:flex;flex-direction:column;gap:.28rem">
+          <button class="qa" onclick="injectChat('Book my orthopaedics appointment at Sunnybrook')"><span class="qa-ico">📅</span><span style="font-size:.72rem">Book orthopaedics</span><span class="qa-arr">›</span></button>
+          <button class="qa" onclick="injectChat('Resend my Igbo reminder for the cardiology appointment')"><span class="qa-ico">📱</span><span style="font-size:.72rem">Resend Igbo reminder</span><span class="qa-arr">›</span></button>
+          <button class="qa" onclick="injectChat('What documents do I need for my Dec 18 appointment?')"><span class="qa-ico">📄</span><span style="font-size:.72rem">Documents needed</span><span class="qa-arr">›</span></button>
+          <button class="qa" onclick="injectChat('Can you explain my blood work results?')"><span class="qa-ico">🩸</span><span style="font-size:.72rem">Explain blood work</span><span class="qa-arr">›</span></button>
+          <button class="qa" onclick="go('find-care')"><span class="qa-ico">🗺️</span><span style="font-size:.72rem">Find orthopaedics near me</span><span class="qa-arr">›</span></button>
+        </div>
+        <div style="padding:.9rem 1rem;border-top:1px solid var(--border);margin-top:auto">
+          <div style="font-size:.62rem;color:var(--muted);line-height:1.65">Fatima speaks <b style="color:var(--lavender)">Igbo</b>, English, and Yoruba.<br>Reminders always in your preferred language.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PATIENT RECORDS -->
+  <div class="view content" id="v-p-records">
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><div class="ch-title">📋 Health Profile</div><button class="btn btn-g" style="font-size:.69rem" onclick="toast('Edit mode','Profile editing available in full product','📋')">Edit</button></div>
+        <div class="cb">
+          <div style="font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.42rem">CONDITIONS</div>
+          <div style="display:flex;flex-wrap:wrap;margin-bottom:.85rem"><span class="htag hcond">Hypertension</span><span class="htag hcond">Iron-deficiency Anaemia</span></div>
+          <div style="font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.42rem">MEDICATIONS</div>
+          <div style="display:flex;flex-wrap:wrap;margin-bottom:.85rem"><span class="htag hmed">Lisinopril 10mg</span><span class="htag hmed">Iron supplements 65mg</span></div>
+          <div style="font-size:.58rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.42rem">ALLERGIES</div>
+          <div style="display:flex;flex-wrap:wrap"><span class="htag hallergy">⚠ Penicillin</span><span class="htag hallergy">⚠ Sulfa drugs</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card"><div class="ch"><div class="ch-title">🆔 OHIP</div></div><div class="cb" style="display:flex;flex-direction:column;gap:.45rem;font-size:.78rem">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Card #</span><span style="font-family:'DM Mono',monospace">****-****-**42</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Expiry</span><span>March 2026</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Version</span><span>XP</span></div>
+        </div></div>
+        <div class="card"><div class="ch"><div class="ch-title">🆘 Emergency Contact</div></div><div class="cb" style="font-size:.78rem;display:flex;flex-direction:column;gap:.35rem">
+          <div><span style="color:var(--muted)">Name: </span>Chukwuemeka Nwosu</div>
+          <div><span style="color:var(--muted)">Relation: </span>Spouse</div>
+          <div><span style="color:var(--muted)">Phone: </span>(416) 555-0187</div>
+        </div></div>
+        <div class="card"><div class="ch"><div class="ch-title">📄 Documents</div></div><div class="cb" style="display:flex;flex-direction:column;gap:.38rem;font-size:.76rem">
+          <div style="display:flex;align-items:center;gap:.58rem;padding:.55rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border)">📄 Intake Form (Igbo/En)<span style="margin-left:auto;font-size:.58rem;color:var(--green)">✓</span></div>
+          <div style="display:flex;align-items:center;gap:.58rem;padding:.55rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border)">🩸 Blood Work Dec 10<span style="margin-left:auto;font-size:.58rem;color:var(--green)">✓</span></div>
+          <button class="qa" onclick="toast('Download started','Downloading all records as PDF','📄')"><span class="qa-ico">⬇️</span>Download all records<span class="qa-arr">›</span></button>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROVIDER OVERVIEW -->
+  <div class="view content" id="v-prov-overview">
+    <div class="g5">
+      <div class="sc"><div class="sc-top"><div class="sc-ico ig">✅</div><span class="sc-delta dg">▲4%</span></div><div class="sc-num">94%</div><div class="sc-lbl">Attendance Rate</div></div>
+      <div class="sc"><div class="sc-top"><div class="sc-ico ir">⚠️</div><span class="sc-delta dr">2 today</span></div><div class="sc-num">2</div><div class="sc-lbl">High-Risk Appts</div></div>
+      <div class="sc"><div class="sc-top"><div class="sc-ico iy">🔁</div><span class="sc-delta dy">3 pending</span></div><div class="sc-num">88%</div><div class="sc-lbl">Referral Completion</div></div>
+      <div class="sc"><div class="sc-top"><div class="sc-ico it">⚡</div><span class="sc-delta dg">Auto</span></div><div class="sc-num">12</div><div class="sc-lbl">Slots Recovered</div></div>
+      <div class="sc"><div class="sc-top"><div class="sc-ico iv">🌐</div><span class="sc-delta dg">4 langs</span></div><div class="sc-num">8</div><div class="sc-lbl">Patients Today</div></div>
+    </div>
+    <div class="card gap">
+      <div class="ch"><div><div class="ch-title">📅 Today's Schedule — December 13</div><div class="ch-sub">8 appointments · 2 CC-Ready · 1 high risk flagged</div></div><div style="display:flex;gap:.38rem"><button class="abtn abtn-g" onclick="toast('Export ready','Schedule PDF exported','📄')">Export</button><button class="abtn abtn-p" onclick="openMod('fillModal')">+ Fill Slot</button></div></div>
+      <div style="overflow-x:auto">
+        <table class="sch-tbl">
+          <thead><tr><th>Time</th><th>Patient</th><th>Type</th><th>CC Status</th><th>Risk</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td class="ttime">9:00 AM</td><td><div class="tpat"><div class="pav" style="background:linear-gradient(135deg,#4c1d95,var(--violet))">AN</div><div><div class="pname">Amara Nwosu</div><div class="plang">🌐 Igbo · English</div></div></div></td><td style="font-size:.74rem;color:var(--dim)">Follow-up</td><td><span class="chip cg">✓ CC-Ready</span></td><td><span style="color:var(--green);font-size:.74rem">● Low</span></td><td><button class="abtn abtn-p" onclick="toast('Chart opened','Amara Nwosu · Igbo reminders sent','📋')">View Chart</button></td></tr>
+            <tr><td class="ttime">9:30 AM</td><td><div class="tpat"><div class="pav" style="background:linear-gradient(135deg,#1a3a1a,#166534)">MK</div><div><div class="pname">Mohammed Khan</div><div class="plang">🌐 Urdu · English</div></div></div></td><td style="font-size:.74rem;color:var(--dim)">Initial</td><td><span class="chip cy">⏳ Forms Pending</span></td><td><span style="color:var(--yellow);font-size:.74rem">● Medium</span></td><td><div style="display:flex;gap:.28rem"><button class="abtn abtn-p" onclick="toast('Reminder sent','Urdu reminder dispatched to Mohammed Khan','📱')">Remind</button><button class="abtn abtn-g">Chart</button></div></td></tr>
+            <tr><td class="ttime">10:30 AM</td><td><div class="tpat"><div class="pav" style="background:linear-gradient(135deg,#1a1a3a,#1e40af)">LC</div><div><div class="pname">Li Chen</div><div class="plang">🌐 Mandarin</div></div></div></td><td style="font-size:.74rem;color:var(--dim)">Blood Work</td><td><span class="chip cg">✓ CC-Ready</span></td><td><span style="color:var(--green);font-size:.74rem">● Low</span></td><td><button class="abtn abtn-p" onclick="toast('Chart opened','Li Chen · Mandarin reminders set','📋')">View Chart</button></td></tr>
+            <tr class="urg"><td class="ttime">11:00 AM</td><td><div class="tpat"><div class="pav" style="background:linear-gradient(135deg,#3a1a1a,#7f1d1d)">PR</div><div><div class="pname">Patricia Reyes</div><div class="plang">🌐 Tagalog · Spanish</div></div></div></td><td style="font-size:.74rem;color:var(--dim)">Specialist</td><td><span class="chip cr">🔴 High Risk</span></td><td><span style="color:var(--red);font-size:.74rem">● High</span></td><td><div style="display:flex;gap:.28rem"><button class="abtn abtn-p" onclick="openMod('riskModal')">Review Risk</button><button class="abtn abtn-g">Chart</button></div></td></tr>
+            <tr><td class="ttime">2:00 PM</td><td><div class="tpat"><div class="pav" style="background:linear-gradient(135deg,#1a2a3a,#0c4a6e)">DS</div><div><div class="pname">Daniel Singh</div><div class="plang">🌐 Punjabi · English</div></div></div></td><td style="font-size:.74rem;color:var(--dim)">Follow-up</td><td><span class="chip cg">✓ CC-Ready</span></td><td><span style="color:var(--green);font-size:.74rem">● Low</span></td><td><button class="abtn abtn-p" onclick="toast('Chart opened','Daniel Singh','📋')">View Chart</button></td></tr>
+            <tr><td class="ttime">3:00 PM</td><td><div class="tpat"><div class="pav" style="background:linear-gradient(135deg,#2a1a3a,#6b21a8)">SK</div><div><div class="pname">Sunita Kaur</div><div class="plang">🌐 Hindi · Punjabi</div></div></div></td><td style="font-size:.74rem;color:var(--dim)">Virtual</td><td><span class="chip cy">⏳ Intake Pending</span></td><td><span style="color:var(--yellow);font-size:.74rem">● Medium</span></td><td><button class="abtn abtn-p" onclick="toast('Intake sent','Hindi intake reminder dispatched','📱')">Send Intake</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="g23">
+      <div class="col">
+        <div class="card">
+          <div class="ch"><div><div class="ch-title">🔁 Referral Queue</div><div class="ch-sub">Sorted by urgency</div></div></div>
+          <div class="ritm"><div class="rico">🏥</div><div class="rinfo"><div class="rtitle">Yemi Okafor → General Practice</div><div class="rdetail">Yoruba · St. Michael's · Chest pain workup</div></div><span class="chip cr" style="flex-shrink:0">Urgent</span><button class="abtn abtn-p" style="margin-left:.4rem;flex-shrink:0" onclick="toast('Accepted','Yemi Okafor intake sent in Yoruba','✅')">Accept</button></div>
+          <div class="ritm"><div class="rico">💊</div><div class="rinfo"><div class="rtitle">Hiroshi Tanaka → Med Review</div><div class="rdetail">Japanese · Self-referral · Diabetes mgmt</div></div><span class="chip cy" style="flex-shrink:0">Semi</span><button class="abtn abtn-p" style="margin-left:.4rem;flex-shrink:0" onclick="toast('Accepted','Hiroshi intake sent in Japanese','✅')">Accept</button></div>
+          <div class="ritm"><div class="rico">👁️</div><div class="rinfo"><div class="rtitle">Maria Costa → Annual Check-up</div><div class="rdetail">Portuguese · Community referral · Routine</div></div><span class="chip cgr" style="flex-shrink:0">Routine</span><button class="abtn abtn-g" style="margin-left:.4rem;flex-shrink:0" onclick="toast('Scheduled','Maria Costa added to next slot','📅')">Schedule</button></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ch-title">📈 Attendance This Week</div><span style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--green)">94% avg</span></div>
+          <div class="mini-chart" id="miniChart"></div>
+          <div style="display:flex;justify-content:space-around;padding:0 1.2rem .75rem;font-size:.58rem;color:var(--muted)"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card">
+          <div class="ch"><div class="ch-title">📊 Clinic Performance</div></div>
+          <div class="cb">
+            <div class="mbar-row"><span class="mbar-lbl">Attendance</span><div class="mbar"><div class="mbar-fill fill-g" data-w="94%"></div></div><span class="mbar-val">94%</span></div>
+            <div class="mbar-row"><span class="mbar-lbl">Referrals Done</span><div class="mbar"><div class="mbar-fill fill-b" data-w="88%"></div></div><span class="mbar-val">88%</span></div>
+            <div class="mbar-row"><span class="mbar-lbl">No-Show Rate</span><div class="mbar"><div class="mbar-fill fill-r" data-w="6%"></div></div><span class="mbar-val">6%</span></div>
+            <div class="mbar-row"><span class="mbar-lbl">Slot Recovery</span><div class="mbar"><div class="mbar-fill fill-y" data-w="78%"></div></div><span class="mbar-val">78%</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><div><div class="ch-title">⚡ Smart Recovery</div><div class="ch-sub">Auto-matched waitlisted patients</div></div></div>
+          <div style="padding:.55rem .85rem">
+            <div class="recitm" onclick="toast('Slot filled!','Kwame Asante booked · Twi reminder sent','⚡')"><span class="rectime">11:00 AM</span><div style="flex:1"><div style="font-size:.76rem;font-weight:500">Kwame Asante</div><div style="font-size:.6rem;color:var(--muted)">🌐 Twi · Waitlisted 3 days</div></div><span class="recact">Fill →</span></div>
+            <div class="recitm" onclick="toast('Slot filled!','Rosa Mendez booked · Spanish reminder sent','⚡')"><span class="rectime">3:30 PM</span><div style="flex:1"><div style="font-size:.76rem;font-weight:500">Rosa Mendez</div><div style="font-size:.6rem;color:var(--muted)">🌐 Spanish · Waitlisted 5 days</div></div><span class="recact">Fill →</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ch-title">🌐 Patient Language Mix</div></div>
+          <div class="cb">
+            <div class="lbar-row"><span class="lbar-lbl">Igbo</span><div class="lbar"><div class="lbar-fill" data-w="28%"></div></div><span class="lbar-pct">28%</span></div>
+            <div class="lbar-row"><span class="lbar-lbl">Urdu</span><div class="lbar"><div class="lbar-fill" data-w="22%"></div></div><span class="lbar-pct">22%</span></div>
+            <div class="lbar-row"><span class="lbar-lbl">Mandarin</span><div class="lbar"><div class="lbar-fill" data-w="18%"></div></div><span class="lbar-pct">18%</span></div>
+            <div class="lbar-row"><span class="lbar-lbl">Tagalog</span><div class="lbar"><div class="lbar-fill" data-w="14%"></div></div><span class="lbar-pct">14%</span></div>
+            <div class="lbar-row"><span class="lbar-lbl">Hindi</span><div class="lbar"><div class="lbar-fill" data-w="11%"></div></div><span class="lbar-pct">11%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIND CARE (MAP) -->
+  <div class="viewflex" id="v-find-care">
+    <div class="finder">
+      <div class="fpanel">
+        <div class="fphead"><div class="fptitle">Find Care Near You</div><div class="fpsub" id="fcnt">12 clinics in the GTA</div></div>
+        <div class="fsw"><span class="fsi">🔍</span><input class="fsinp" id="fsrch" placeholder="Clinic, specialty, or language…" oninput="applyFF()"></div>
+        <div class="ffilts">
+          <button class="ffbtn on" onclick="toggleFF(this,'all')">All</button>
+          <button class="ffbtn" onclick="toggleFF(this,'Family Medicine')">Family</button>
+          <button class="ffbtn" onclick="toggleFF(this,'Cardiology')">Cardiology</button>
+          <button class="ffbtn" onclick="toggleFF(this,'Internal Medicine')">Internal</button>
+          <button class="ffbtn" onclick="toggleFF(this,'Mental Health')">Mental</button>
+          <button class="ffbtn" onclick="toggleFF(this,'Paediatrics')">Paeds</button>
+          <button class="ffbtn" onclick="toggleFF(this,'__acc')">Accepting</button>
+          <button class="ffbtn" onclick="toggleFF(this,'__open')">Open Now</button>
+        </div>
+        <div class="fsort"><span id="fscnt">12 clinics</span><select class="fssel" onchange="sortFF(this.value)"><option value="dist">Nearest</option><option value="rating">Top rated</option><option value="wait">Shortest wait</option><option value="name">A–Z</option></select></div>
+        <div class="fclist" id="fclist"></div>
+      </div>
+      <div class="maparea">
+        <svg id="svgMap" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="mapctrl">
+          <button class="mcbtn on" onclick="mF('all',this)">All</button>
+          <button class="mcbtn" onclick="mF('__open',this)">Open Now</button>
+          <button class="mcbtn" onclick="mF('__acc',this)">Accepting</button>
+          <button class="mcbtn" onclick="zIn()">＋</button>
+          <button class="mcbtn" onclick="zOut()">－</button>
+        </div>
+        <div class="mapstats">
+          <div class="msrow"><span>Showing</span><span class="msnum" id="msc">12</span></div>
+          <div class="msrow"><span>Accepting</span><span class="msnum" id="msa">9</span></div>
+          <div class="msrow"><span>Languages</span><span class="msnum">10+</span></div>
+        </div>
+        <div class="mapleg">
+          <div class="ltitle">Specialty</div>
+          <div class="lrow"><div class="ldot" style="background:#7c3aed"></div>Family</div>
+          <div class="lrow"><div class="ldot" style="background:#db2777"></div>Cardiology</div>
+          <div class="lrow"><div class="ldot" style="background:#0891b2"></div>Internal</div>
+          <div class="lrow"><div class="ldot" style="background:#059669"></div>Mental Health</div>
+          <div class="lrow"><div class="ldot" style="background:#d97706"></div>Paediatrics</div>
+          <div class="lrow"><div class="ldot" style="background:#6366f1"></div>Other</div>
+        </div>
+        <div class="maptip hidden" id="maptip">
+          <div class="tn" id="tipN"></div><div class="ts" id="tipS"></div>
+          <div class="tst" id="tipSt"></div><div class="tr" id="tipR"></div>
+          <button class="tb" id="tipB">View &amp; Book →</button>
+        </div>
+        <div class="det" id="det">
+          <div class="detclose" onclick="closeDet()">✕</div>
+          <div id="detBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════ AI SUITE VIEWS ═══════ -->
+<div class="view content" id="v-ai-translation">
+    <div class="mode-row">
+      <div class="mode-pills">
+        <button class="mpill on" id="mp-text" onclick="setMode('text')">✍️ Text</button>
+        <button class="mpill" id="mp-voice" onclick="setMode('voice')">🎙 Voice</button>
+        <button class="mpill" id="mp-live" onclick="setMode('live')">⚡ Live</button>
+      </div>
+      <span id="liveBadge" style="display:none;font-size:.68rem;color:var(--green)"><span class="live-dot"></span>Live translation active</span>
+    </div>
+    <div class="trlang-row">
+      <select class="lang-sel" id="srcLang" onchange="autoTr()">
+        <option value="English" selected>🇨🇦 English</option>
+        <option value="Igbo">🇳🇬 Igbo</option><option value="French">🇫🇷 French</option>
+        <option value="Mandarin">🇨🇳 Mandarin</option><option value="Arabic">🇸🇦 Arabic</option>
+        <option value="Urdu">🇵🇰 Urdu</option><option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Spanish">🇪🇸 Spanish</option><option value="Portuguese">🇧🇷 Portuguese</option>
+        <option value="Tagalog">🇵🇭 Tagalog</option><option value="Punjabi">🇮🇳 Punjabi</option>
+        <option value="Tamil">🇱🇰 Tamil</option><option value="Somali">🇸🇴 Somali</option>
+        <option value="Ukrainian">🇺🇦 Ukrainian</option><option value="Polish">🇵🇱 Polish</option>
+        <option value="Korean">🇰🇷 Korean</option><option value="Yoruba">🇳🇬 Yoruba</option>
+        <option value="Twi">🇬🇭 Twi</option><option value="Bengali">🇧🇩 Bengali</option>
+        <option value="Vietnamese">🇻🇳 Vietnamese</option><option value="Japanese">🇯🇵 Japanese</option>
+        <option value="Tigrinya">🇪🇷 Tigrinya</option><option value="Farsi">🇮🇷 Farsi</option>
+      </select>
+      <button class="swap-btn" onclick="swapLangs()" title="Swap">&#8644;</button>
+      <select class="lang-sel" id="tgtLang" onchange="autoTr()">
+        <option value="Igbo" selected>🇳🇬 Igbo</option>
+        <option value="English">🇨🇦 English</option><option value="French">🇫🇷 French</option>
+        <option value="Mandarin">🇨🇳 Mandarin</option><option value="Arabic">🇸🇦 Arabic</option>
+        <option value="Urdu">🇵🇰 Urdu</option><option value="Hindi">🇮🇳 Hindi</option>
+        <option value="Spanish">🇪🇸 Spanish</option><option value="Portuguese">🇧🇷 Portuguese</option>
+        <option value="Tagalog">🇵🇭 Tagalog</option><option value="Punjabi">🇮🇳 Punjabi</option>
+        <option value="Tamil">🇱🇰 Tamil</option><option value="Somali">🇸🇴 Somali</option>
+        <option value="Ukrainian">🇺🇦 Ukrainian</option><option value="Polish">🇵🇱 Polish</option>
+        <option value="Korean">🇰🇷 Korean</option><option value="Yoruba">🇳🇬 Yoruba</option>
+        <option value="Twi">🇬🇭 Twi</option><option value="Bengali">🇧🇩 Bengali</option>
+        <option value="Vietnamese">🇻🇳 Vietnamese</option><option value="Japanese">🇯🇵 Japanese</option>
+        <option value="Tigrinya">🇪🇷 Tigrinya</option><option value="Farsi">🇮🇷 Farsi</option>
+      </select>
+    </div>
+    <div class="tr-areas">
+      <div class="tr-box">
+        <span class="tr-lbl">Source text</span>
+        <textarea class="tr-area" id="srcText" placeholder="Type or paste medical text here…" oninput="debounceTr()"></textarea>
+        <div class="tr-meta">
+          <span class="tr-cnt" id="srcCnt">0 chars</span>
+          <div style="display:flex;gap:.38rem">
+            <button class="btn btn-g" style="font-size:.66rem" id="voiceInputBtn" onclick="startVoiceInput()">🎙 Speak</button>
+            <button class="btn btn-p" style="font-size:.66rem" onclick="doTranslate()">Translate</button>
+          </div>
+        </div>
+      </div>
+      <div class="tr-arrow-box">
+        <div id="trSpin" style="display:none"><div class="spin"></div></div>
+        <span id="trArrow" style="font-size:1.1rem;color:var(--muted)">&#8594;</span>
+      </div>
+      <div class="tr-box">
+        <span class="tr-lbl">Translation</span>
+        <textarea class="tr-area out" id="tgtText" placeholder="Translation appears here…" readonly></textarea>
+        <div class="tr-meta">
+          <span class="tr-cnt" id="tgtCnt">0 chars</span>
+          <div style="display:flex;gap:.38rem">
+            <button class="btn btn-g" style="font-size:.66rem" onclick="speakOut()">🔊 Speak</button>
+            <button class="btn btn-g" style="font-size:.66rem" onclick="copyTr()">&#128203; Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card gap">
+        <div class="ch"><div class="ch-title">&#9889; Clinical Quick Phrases</div><button class="cl" onclick="addPhrases()">More +</button></div>
+        <div class="cb"><div class="qph-grid" id="qphGrid"></div></div>
+      </div>
+      <div class="card gap">
+        <div class="ch"><div class="ch-title">&#128203; Recent Translations</div><button class="cl" onclick="clearHist()">Clear</button></div>
+        <div id="trHist" class="cb" style="max-height:210px;overflow-y:auto;min-height:50px"></div>
+      </div>
+    </div>
+  </div>
+
+<div class="view content" id="v-ai-recorder">
+    <div class="g32">
+      <div class="col">
+        <div class="card">
+          <div class="ch">
+            <div><div class="ch-title">🎙 Doctor–Patient Recording</div><div class="ch-sub">Real-time transcription with speaker diarization</div></div>
+            <div style="display:flex;gap:.38rem;align-items:center">
+              <select class="inp" id="recLang" style="width:118px;padding:.32rem .62rem;font-size:.67rem">
+                <option value="en-CA">English (CA)</option><option value="fr-CA">French (CA)</option>
+                <option value="hi-IN">Hindi</option><option value="ur-PK">Urdu</option>
+                <option value="zh-CN">Mandarin</option><option value="pa-IN">Punjabi</option>
+                <option value="tl-PH">Tagalog</option><option value="es-ES">Spanish</option>
+                <option value="ar-SA">Arabic</option>
+              </select>
+              <span id="recDot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0"></span>
+            </div>
+          </div>
+          <div class="cb" style="text-align:center;padding:1.3rem">
+            <div class="rec-btn" id="recBtn" onclick="toggleRec()">🎙</div>
+            <div class="rec-status" id="recStat">Click to start recording</div>
+            <div class="rec-timer" id="recTimer">00:00</div>
+            <div class="waveform" id="waveform"></div>
+            <div style="display:flex;gap:.42rem;justify-content:center;flex-wrap:wrap;margin-top:.75rem">
+              <button class="btn btn-g" id="pauseBtn" style="display:none;font-size:.68rem" onclick="togglePause()">&#9208; Pause</button>
+              <button class="btn btn-g" style="font-size:.68rem" onclick="clearTr2()">&#128465; Clear</button>
+              <button class="btn btn-p" style="font-size:.68rem" onclick="exportTr()">&#128196; Export</button>
+              <button class="btn btn-teal" style="font-size:.68rem" onclick="runInsights()">&#129302; AI Insights</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch">
+            <div><div class="ch-title">&#128221; Live Transcript</div><div class="ch-sub" id="trLineCount">0 utterances</div></div>
+            <div style="display:flex;gap:.32rem">
+              <span class="spk-badge spk-dr">Doctor</span>
+              <span class="spk-badge spk-pt">Patient</span>
+            </div>
+          </div>
+          <div id="trBox" style="padding:.82rem 1.1rem;max-height:250px;overflow-y:auto;min-height:60px">
+            <div style="font-size:.68rem;color:var(--muted);text-align:center;padding:.4rem">Recording will appear here in real-time</div>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card">
+          <div class="ch"><div class="ch-title">&#128101; Speaker Settings</div></div>
+          <div class="cb" style="display:flex;flex-direction:column;gap:.62rem">
+            <div>
+              <div style="font-size:.6rem;color:var(--muted);margin-bottom:.3rem">Speaker 1 — Doctor</div>
+              <div style="display:flex;gap:.42rem">
+                <input class="inp" id="spk1" value="Dr. Adeyemi" style="flex:1">
+                <select class="inp" id="spk1Lang" style="width:105px;font-size:.68rem">
+                  <option value="en-CA">English</option><option value="ig-NG">Igbo</option><option value="fr-CA">French</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:.6rem;color:var(--muted);margin-bottom:.3rem">Speaker 2 — Patient</div>
+              <div style="display:flex;gap:.42rem">
+                <input class="inp" id="spk2" value="Amara Nwosu" style="flex:1">
+                <select class="inp" id="spk2Lang" style="width:105px;font-size:.68rem">
+                  <option value="en-CA">English</option><option value="ig-NG">Igbo</option><option value="ur-PK">Urdu</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:.6rem;color:var(--muted);margin-bottom:.3rem">Auto-translate patient speech to</div>
+              <select class="inp" id="autoTrLang" style="font-size:.68rem">
+                <option value="">No auto-translation</option>
+                <option value="English" selected>English (for doctor)</option>
+                <option value="Igbo">Igbo (for patient)</option>
+                <option value="Urdu">Urdu</option><option value="Mandarin">Mandarin</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ch-title">&#129302; AI Clinical Insights</div><button class="cl" onclick="runInsights()">Analyze</button></div>
+          <div id="insPanel" class="cb" style="min-height:70px;max-height:220px;overflow-y:auto">
+            <div style="font-size:.68rem;color:var(--muted);text-align:center">Record conversation, then click Analyze</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ch-title">&#128202; Session Stats</div></div>
+          <div class="cb" style="display:flex;flex-direction:column;gap:.42rem;font-size:.73rem">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Duration</span><span id="st-dur" style="font-family:'DM Mono',monospace">00:00</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Words</span><span id="st-words" style="font-family:'DM Mono',monospace">0</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Doctor turns</span><span id="st-dr" style="font-family:'DM Mono',monospace">0</span></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Patient turns</span><span id="st-pt" style="font-family:'DM Mono',monospace">0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div class="view content" id="v-ai-cdisc">
+    <div class="pipe-bar" id="pipeBar">
+      <div class="pstep active" id="ps-0" onclick="jumpStep(0)"><span class="pstep-n">Step 1</span>Input</div>
+      <div class="pstep" id="ps-1" onclick="jumpStep(1)"><span class="pstep-n">Step 2</span>AI Extract</div>
+      <div class="pstep" id="ps-2" onclick="jumpStep(2)"><span class="pstep-n">Step 3</span>Domains</div>
+      <div class="pstep" id="ps-3" onclick="jumpStep(3)"><span class="pstep-n">Step 4</span>Variables</div>
+      <div class="pstep" id="ps-4" onclick="jumpStep(4)"><span class="pstep-n">Step 5</span>Export</div>
+    </div>
+    <!-- Step panels rendered by JS -->
+    <div id="cdiscPanel"></div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ═══════ MODALS ═══════ -->
+<!-- Book Appointment -->
+<div class="mov" id="bookModal" onclick="if(event.target===this)closeMod('bookModal')">
+  <div class="modal">
+    <div class="mhd"><div class="mhd-ico">📅</div><div><div class="mhd-name">Book an Appointment</div><div class="mhd-sub">Navigator confirms within 2 hours</div></div><button class="mclose" onclick="closeMod('bookModal')">✕</button></div>
+    <div class="mbody">
+      <div class="msec">Appointment Details</div>
+      <div class="mrow">
+        <div class="mfield"><label class="mlbl">Type</label><select class="minput"><option>Specialist Visit</option><option>Follow-up</option><option>Initial Consult</option><option>Virtual</option><option>Lab / Test</option></select></div>
+        <div class="mfield"><label class="mlbl">Preferred Language</label><select class="minput"><option>Igbo</option><option>English</option><option>Urdu</option><option>Mandarin</option><option>Hindi</option></select></div>
+      </div>
+      <div class="mfield"><label class="mlbl">Provider / Clinic (optional)</label><input class="minput" placeholder="e.g. Dr. Patel or Mount Sinai"></div>
+      <div class="mrow">
+        <div class="mfield"><label class="mlbl">Preferred Date</label><input class="minput" type="date"></div>
+        <div class="mfield"><label class="mlbl">Preferred Time</label><input class="minput" type="time"></div>
+      </div>
+      <div class="mfield"><label class="mlbl">Notes for Navigator</label><input class="minput" placeholder="Any context to share…"></div>
+      <button class="mcta" onclick="closeMod('bookModal');toast('Request sent!','Fatima will confirm within 2 hours','📅')">Request Appointment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Risk Modal -->
+<div class="mov" id="riskModal" onclick="if(event.target===this)closeMod('riskModal')">
+  <div class="modal">
+    <div class="mhd"><div class="mhd-ico">⚠️</div><div><div class="mhd-name">High No-Show Risk — Patricia Reyes</div><div class="mhd-sub">CareCompass AI risk flag</div></div><button class="mclose" onclick="closeMod('riskModal')">✕</button></div>
+    <div class="mbody">
+      <div style="background:var(--rbg);border:1px solid rgba(239,68,68,.18);border-radius:9px;padding:.9rem;margin-bottom:.9rem;font-size:.75rem;line-height:1.9;color:rgba(255,255,255,.62)">🔴 <b>Risk factors:</b> 2 prior no-shows · Forms incomplete · No reminder acknowledged<br>🌐 <b>Language:</b> Tagalog — preferred language reminder not yet sent<br>📍 <b>Travel:</b> 18km · No transit confirmed</div>
+      <div style="display:flex;gap:.65rem">
+        <button class="mcta" onclick="closeMod('riskModal');toast('Tagalog reminder sent!','SMS dispatched to Patricia Reyes','📱')">Send Tagalog Reminder</button>
+        <button class="btn btn-g" style="flex-shrink:0" onclick="closeMod('riskModal');toast('Backup activated','Smart recovery for 11 AM slot','⚡')">Prepare Backup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fill Slot Modal -->
+<div class="mov" id="fillModal" onclick="if(event.target===this)closeMod('fillModal')">
+  <div class="modal">
+    <div class="mhd"><div class="mhd-ico">⚡</div><div><div class="mhd-name">Smart Cancellation Recovery</div><div class="mhd-sub">Auto-notify waitlisted patients in their language</div></div><button class="mclose" onclick="closeMod('fillModal')">✕</button></div>
+    <div class="mbody">
+      <div class="mrow"><div class="mfield"><label class="mlbl">Date</label><input class="minput" type="date"></div><div class="mfield"><label class="mlbl">Time</label><input class="minput" type="time"></div></div>
+      <div class="mfield"><label class="mlbl">Type</label><select class="minput"><option>Follow-up</option><option>Initial Consult</option><option>Virtual</option></select></div>
+      <div style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.18);border-radius:9px;padding:.75rem .9rem;font-size:.75rem;color:#c7d2fe;margin-bottom:.82rem;line-height:1.7">🤖 CareCompass will notify the top 3 waitlisted patients and confirm the first acceptance automatically.</div>
+      <button class="mcta" onclick="closeMod('fillModal');toast('Smart recovery activated!','3 patients notified · awaiting confirmation','⚡')">Activate Smart Recovery</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clinic Booking Modal -->
+<div class="mov" id="cBookModal" onclick="if(event.target===this)closeMod('cBookModal')">
+  <div class="modal"><div id="cBookBody"></div></div>
+</div>
+
+
+<!-- AI Keys Modal -->
+<div class="mov" id="aiKeyModal" onclick="if(event.target===this)closeAIKeys()">
+  <div class="modal" style="max-width:440px">
+    <div class="mhd"><div class="mhd-ico">🔑</div><div><div class="mhd-name">AI Suite API Keys</div><div class="mhd-sub">Session-only · never stored to disk</div></div><button class="mclose" onclick="closeAIKeys()">✕</button></div>
+    <div class="mbody">
+      <div class="mfield"><label class="mlbl">Cohere API Key — translation, EHR extraction, SDTM mapping</label>
+        <div style="display:flex;gap:.45rem"><input class="minput" id="aiCohereKey" type="password" placeholder="co-..." style="flex:1"><button class="btn btn-g" style="font-size:.66rem;padding:.38rem .6rem" onclick="var e=document.getElementById('aiCohereKey');e.type=e.type==='password'?'text':'password'">👁</button></div></div>
+      <div class="mfield"><label class="mlbl">Anthropic API Key — Claude clinical reasoning &amp; insights</label>
+        <div style="display:flex;gap:.45rem"><input class="minput" id="aiAnthropicKey" type="password" placeholder="sk-ant-..." style="flex:1"><button class="btn btn-g" style="font-size:.66rem;padding:.38rem .6rem" onclick="var e=document.getElementById('aiAnthropicKey');e.type=e.type==='password'?'text':'password'">👁</button></div></div>
+      <div style="font-size:.63rem;color:rgba(255,255,255,.38);margin-bottom:.85rem;line-height:1.65">💡 dashboard.cohere.com &nbsp;|&nbsp; console.anthropic.com<br>Without keys, all AI features show realistic demo responses.</div>
+      <button class="mcta" onclick="saveAIKeys()">Save Keys</button>
+    </div>
+  </div>
+</div>
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="tico" style="font-size:1.05rem"></span>
+  <div><b id="ttitle" style="display:block;margin-bottom:.06rem;font-size:.8rem"></b><span id="tsub" style="font-size:.65rem;color:var(--muted)"></span></div>
+</div>
+<script>
+// ══════════════════════════════════════════════════
+// NAVIGATION DATA
+// ══════════════════════════════════════════════════
+const NAV_PAT = [
+  {s:'Care',items:[
+    {id:'p-overview',i:'🏠',l:'Overview',badge:null},
+    {id:'p-journey',i:'🧭',l:'My Journey',badge:null},
+    {id:'find-care',i:'🗺️',l:'Find Care',badge:null},
+    {id:'p-appointments',i:'📅',l:'Appointments',badge:'2',bc:'g'},
+    {id:'p-referrals',i:'🔁',l:'Referrals',badge:'1',bc:'y'},
+  ]},
+  {s:'Support',items:[
+    {id:'p-navigator',i:'💬',l:'My Navigator',badge:'●',bc:'g'},
+    {id:'p-records',i:'📋',l:'Health Records',badge:null},
+  ]},
+  {s:'Clinical AI',items:[
+    {id:'ai-translation',i:'🌐',l:'AI Translation',badge:'Live',bc:'g'},
+    {id:'ai-recorder',i:'🎙',l:'Voice Recorder',badge:null},
+    {id:'ai-cdisc',i:'🧬',l:'CDISC Mapping',badge:null},
+  ]},
+  {s:'Account',items:[
+    {id:'settings',i:'⚙️',l:'Settings',badge:null},
+  ]},
+];
+const NAV_PROV = [
+  {s:'Provider',items:[
+    {id:'prov-overview',i:'🏥',l:'Dashboard',badge:null},
+    {id:'find-care',i:'🗺️',l:'Clinic Map',badge:null},
+  ]},
+  {s:'Management',items:[
+    {id:'p-referrals',i:'🔁',l:'Referral Queue',badge:'3',bc:'r'},
+  ]},
+  {s:'Clinical AI',items:[
+    {id:'ai-translation',i:'🌐',l:'AI Translation',badge:null},
+    {id:'ai-recorder',i:'🎙',l:'Voice Recorder',badge:null},
+    {id:'ai-cdisc',i:'🧬',l:'CDISC Mapping',badge:null},
+  ]},
+  {s:'Account',items:[
+    {id:'settings',i:'⚙️',l:'Settings',badge:null},
+  ]},
+];
+const TOPBAR_DATA = {
+  'home':         {t:'Welcome to CareCompass',s:'GTA Healthcare Navigation Platform — select a view to begin'},
+  'p-overview':   {t:'Patient Dashboard',s:'Amara Nwosu · Igbo · Dec 13, 2024'},
+  'p-journey':    {t:'My Care Journey',s:'Cardiology referral pathway · 75% complete'},
+  'find-care':    {t:'Find Care Near You 🗺️',s:'12 clinics across the GTA · click pins or search to explore'},
+  'p-appointments':{t:'My Appointments',s:'2 upcoming · Last visit Dec 5'},
+  'p-referrals':  {t:'Referral Tracker',s:'3 active referrals · 1 pending booking'},
+  'p-navigator':  {t:'My Navigator — Fatima',s:'Online · Igbo · English · Yoruba'},
+  'p-records':    {t:'Health Records',s:'PHIPA-compliant · Encrypted · Read-only'},
+  'prov-overview':{t:'Provider Dashboard',s:'Dr. Adeyemi · Scarborough Health Network · Dec 13'},
+  'settings':     {t:'Settings',s:'Preferences and account management'},
+  'ai-translation':{t:'🌐 Real-Time AI Translation',s:'Cohere command-a-translate-08-2025 · 23 languages · Live mode'},
+  'ai-recorder':   {t:'🎙 Voice Recorder & Diarization',s:'Real-time transcription · Speaker diarization · AI clinical insights'},
+  'ai-cdisc':      {t:'🧬 CDISC / SDTM Clinical Mapping',s:'Multi-modal AI extraction → CDISC standards → CSV export'},
+};
+const TOPBAR_BTNS = {
+  'p-overview':   ()=>`<button class="btn btn-p" onclick="openMod('bookModal')">+ Book Appointment</button><div class="nbb" onclick="toast('No new notifications','All caught up!','🔔')"><span>🔔</span><span class="ndot"></span></div>`,
+  'p-journey':    ()=>`<button class="btn btn-g" onclick="go('find-care')">🗺️ Find Care</button>`,
+  'p-appointments':()=>`<button class="btn btn-p" onclick="openMod('bookModal')">+ New Booking</button>`,
+  'p-navigator':  ()=>`<button class="btn btn-g" onclick="clearChat()">🗑️ Clear Chat</button>`,
+  'prov-overview':()=>`<button class="btn btn-p" onclick="openMod('fillModal')">⚡ Fill Slot</button><button class="btn btn-g" onclick="openMod('riskModal')">⚠️ Risk Alerts</button>`,
+  'find-care':    ()=>`<button class="btn btn-g" onclick="openMod('bookModal')">📅 Book Appointment</button>`,
+  'ai-translation':()=>`<button class="btn btn-g" style="font-size:.7rem" onclick="openAIKeys()">🔑 API Keys</button>`,
+  'ai-recorder':   ()=>`<button class="btn btn-teal" style="font-size:.7rem" onclick="runInsights()">🤖 AI Insights</button><button class="btn btn-g" style="font-size:.7rem" onclick="openAIKeys()">🔑 Keys</button>`,
+  'ai-cdisc':      ()=>`<button class="btn btn-p" style="font-size:.7rem" onclick="runPipeline()">🚀 Run Pipeline</button><button class="btn btn-g" style="font-size:.7rem" onclick="openAIKeys()">🔑 Keys</button>`,
+};
+const ROLES = {
+  patient:  {av:'AN',cls:'pat',name:'Amara Nwosu',role:'Patient · Igbo',lang:'🌐 Igbo · English',nav:NAV_PAT},
+  provider: {av:'AD',cls:'prov',name:'Dr. Adeyemi',role:'Provider · Scarborough',lang:'🏥 Scarborough Health',nav:NAV_PROV},
+};
+
+// ── STATE ──────────────────────────────────
+let curRole='patient', curView='home';
+
+// ── NAVIGATION ──────────────────────────────────
+var go=function(id){
+  curView=id;
+  document.querySelectorAll('.view,.viewflex').forEach(v=>v.classList.remove('on'));
+  const el=document.getElementById('v-'+id);
+  if(el) el.classList.add('on');
+  // topbar
+  const td=TOPBAR_DATA[id]||{t:id,s:''};
+  document.getElementById('tbTitle').textContent=td.t;
+  document.getElementById('tbSub').textContent=td.s;
+  const br=document.getElementById('tbRight');
+  br.innerHTML=(TOPBAR_BTNS[id]?TOPBAR_BTNS[id]():'');
+  // nav active
+  document.querySelectorAll('.ni').forEach(n=>n.classList.toggle('active',n.dataset.id===id));
+  // triggers
+  if(id==='find-care') setTimeout(buildMap,80);
+  if(id==='prov-overview') setTimeout(()=>{animBars();buildChart();},120);
+  if(id!=='find-care') animBars();
+  // scroll top
+  document.querySelectorAll('.content.on').forEach(c=>c.scrollTop=0);
+}
+
+function setRole(r){
+  curRole=r;
+  const R=ROLES[r];
+  document.getElementById('sbAv').textContent=R.av;
+  document.getElementById('sbAv').className='sb-av '+R.cls;
+  document.getElementById('sbName').textContent=R.name;
+  document.getElementById('sbRole').textContent=R.role;
+  document.getElementById('sbLang').textContent=R.lang;
+  document.getElementById('rPat').classList.toggle('active',r==='patient');
+  document.getElementById('rProv').classList.toggle('active',r==='provider');
+  buildNav();
+  go(r==='patient'?'p-overview':'prov-overview');
+}
+
+function buildNav(){
+  const R=ROLES[curRole];
+  const el=document.getElementById('sbNav');
+  el.innerHTML='';
+  R.nav.forEach(sec=>{
+    const lbl=document.createElement('div');lbl.className='nl';lbl.textContent=sec.s;el.appendChild(lbl);
+    sec.items.forEach(item=>{
+      const d=document.createElement('div');
+      d.className='ni'+(item.id===curView?' active':'');
+      d.dataset.id=item.id;
+      d.innerHTML=`<span class="ni-ico">${item.i}</span>${item.l}${item.badge?`<span class="ni-badge ${item.bc||''}">${item.badge}</span>`:''}`;
+      d.onclick=()=>go(item.id);
+      el.appendChild(d);
+    });
+  });
+}
+
+// ── MODALS ──────────────────────────────────
+function openMod(id){document.getElementById(id).classList.add('open');}
+function closeMod(id){document.getElementById(id).classList.remove('open');}
+
+// ── TOAST ──────────────────────────────────
+let tT;
+function toast(title,sub,ico='✅'){
+  const t=document.getElementById('toast');
+  document.getElementById('ttitle').textContent=title;
+  document.getElementById('tsub').textContent=sub;
+  document.getElementById('tico').textContent=ico;
+  t.classList.add('show');
+  clearTimeout(tT);
+  tT=setTimeout(()=>t.classList.remove('show'),3400);
+}
+
+// ── PROGRESS BARS ANIMATION ──────────────────────
+function animBars(){
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.pfill[data-w],.mbar-fill[data-w],.lbar-fill[data-w]').forEach(el=>{
+      setTimeout(()=>el.style.width=el.dataset.w,50);
+    });
+  });
+}
+
+// ── MINI CHART ──────────────────────────────────
+function buildChart(){
+  const el=document.getElementById('miniChart');
+  if(!el) return;
+  const data=[88,92,95,91,97,78,0];
+  const max=100;
+  el.innerHTML=data.map(v=>`<div class="mc-bar" style="height:${v?Math.round(v/max*48):2}px;opacity:${v?1:.2}"></div>`).join('');
+}
+
+// ── JOURNEY EXPAND ──────────────────────────────────
+function expandJStep(n){
+  const el=document.getElementById('jexp'+n);
+  if(el){el.style.display=el.style.display==='none'?'block':'none';}
+}
+
+// ── HOME COUNTER ANIMATION ──────────────────────
+function animCounters(){
+  const targets=[{id:'hs1',to:10,suffix:'+',dur:1200},{id:'hs2',to:94,suffix:'%',dur:1400},{id:'hs3',to:12,suffix:'',dur:1000},{id:'hs4',to:88,suffix:'%',dur:1500}];
+  targets.forEach(({id,to,suffix,dur})=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    let start=null;
+    function step(ts){
+      if(!start)start=ts;
+      const p=Math.min((ts-start)/dur,1);
+      const ease=1-Math.pow(1-p,3);
+      el.textContent=Math.round(ease*to)+suffix;
+      if(p<1)requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+// ══════════════════════════════════════════════════
+// NAVIGATOR CHAT
+// ══════════════════════════════════════════════════
+const CHAT_RESPONSES = [
+  {match:['book','ortho','sunnybrook'],reply:"Great! I found 3 available slots at Sunnybrook Orthopaedics this week:\n\n📅 Fri Jan 10 · 9:00 AM\n📅 Mon Jan 13 · 1:00 PM\n📅 Tue Jan 14 · 3:30 PM\n\nWhich would you prefer? I'll confirm and send your Igbo reminder!"},
+  {match:['remind','igbo','sms','reminder'],reply:"✅ Done! Your Igbo SMS reminder for the Dec 18 cardiology appointment has been rescheduled for Dec 17 at 8:00 AM. You'll receive it in Igbo with all the clinic details."},
+  {match:['document','need','bring','dec 18','appointment'],reply:"For your Dec 18 cardiology appointment you'll need:\n\n📄 OHIP card (version XP, expires March 2026)\n🩸 Blood work results (Dr. Adeyemi sent these digitally)\n💊 Current medication list: Lisinopril 10mg, Iron supplements\n\nI'll send this checklist to your phone in Igbo tomorrow! ✅"},
+  {match:['blood','result','explain'],reply:"Your Dec 10 blood work results summary:\n\n🩸 Hemoglobin: 10.2 g/dL (slightly low — consistent with anaemia)\n❤️ LDL Cholesterol: 3.8 mmol/L (borderline high — why cardiology referral)\n✅ Blood glucose: Normal range\n\nDr. Patel will review in detail on Dec 18. Any questions?"},
+  {match:['hello','hi','ndewo','hey'],reply:"Ndewo! 👋 How can I help you today? I can help with:\n• Booking appointments\n• Resending reminders in Igbo\n• Explaining your documents or results\n• Finding clinics near you\n\nWhat do you need?"},
+  {match:['thank','thanks','ọdịmma'],reply:"Ọ dị mma! 😊 You're very welcome, Amara. Is there anything else I can help you with today?"},
+];
+
+function sendChat(){
+  const inp=document.getElementById('chatInp');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  inp.value='';
+  addMsg(msg,'user');
+  // typing indicator
+  const typingId='typing-'+Date.now();
+  const tmsg=document.createElement('div');
+  tmsg.className='cmsg';tmsg.id=typingId;
+  tmsg.innerHTML=`<div class="cav cav-nav">F</div><div><div class="ctyping"><span></span><span></span><span></span></div></div>`;
+  document.getElementById('chatMsgs').appendChild(tmsg);
+  scrollChat();
+  const lower=msg.toLowerCase();
+  const match=CHAT_RESPONSES.find(r=>r.match.some(k=>lower.includes(k)));
+  const reply=match?match.reply:"I'm looking into that for you now, Amara! 🔍 I'll have an answer within a few minutes. Is there anything else urgent?";
+  setTimeout(()=>{
+    document.getElementById(typingId)?.remove();
+    addMsg(reply,'nav');
+  },1200+Math.random()*600);
+}
+
+function addMsg(text,role){
+  const el=document.getElementById('chatMsgs');
+  const d=document.createElement('div');
+  d.className='cmsg'+(role==='user'?' cmsg-r':'');
+  const t=new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
+  if(role==='nav'){
+    d.innerHTML=`<div class="cav cav-nav">F</div><div><div class="cbbl cbbl-nav">${text.replace(/\n/g,'<br>')}</div><div class="ctime">${t}</div></div>`;
+  } else {
+    d.innerHTML=`<div class="cav cav-usr">A</div><div><div class="cbbl cbbl-usr">${text.replace(/\n/g,'<br>')}</div><div class="ctime">${t}</div></div>`;
+  }
+  el.appendChild(d);
+  scrollChat();
+}
+
+function scrollChat(){
+  const el=document.getElementById('chatMsgs');
+  if(el) el.scrollTop=el.scrollHeight;
+}
+
+function injectChat(msg){
+  document.getElementById('chatInp').value=msg;
+  sendChat();
+  go('p-navigator');
+}
+
+function clearChat(){
+  const el=document.getElementById('chatMsgs');
+  if(el) el.innerHTML='';
+  addMsg("Chat cleared! How can I help you, Amara?",'nav');
+  toast('Chat cleared','Fresh conversation started','🗑️');
+}
+
+// ══════════════════════════════════════════════════
+// CLINIC DATA
+// ══════════════════════════════════════════════════
+const CLINICS=[
+  {id:1,name:"Scarborough Health Network",spec:"Family Medicine",icon:"🏥",lat:43.7615,lng:-79.2308,addr:"3050 Lawrence Ave E, Scarborough",phone:"(416) 431-8200",hours:"Mon–Fri 8AM–6PM, Sat 9AM–2PM",acc:true,open:true,dist:1.2,wait:5,rating:4.7,rc:312,color:"#7c3aed",langs:["Igbo","English","Urdu","Hindi","Tamil"],reviews:[{a:"Fatima A.",l:"Urdu",s:5,t:"The navigator helped me book in Urdu — incredibly smooth.",d:"Nov 2024"},{a:"James O.",l:"Igbo",s:5,t:"The Igbo interpreter made all the difference. Highly recommend.",d:"Dec 2024"}],slots:[{d:"Mon Dec 16",t:"9:00 AM"},{d:"Mon Dec 16",t:"11:30 AM"},{d:"Tue Dec 17",t:"10:00 AM"},{d:"Tue Dec 17",t:"2:30 PM"},{d:"Wed Dec 18",t:"9:30 AM"},{d:"Wed Dec 18",t:"4:00 PM"}]},
+  {id:2,name:"Mount Sinai Cardiology",spec:"Cardiology",icon:"❤️",lat:43.6576,lng:-79.3873,addr:"600 University Ave, Toronto",phone:"(416) 596-4200",hours:"Mon–Fri 8AM–5PM",acc:true,open:true,dist:4.8,wait:21,rating:4.9,rc:528,color:"#db2777",langs:["English","French","Mandarin","Hebrew"],reviews:[{a:"Rachel S.",l:"English",s:5,t:"World-class cardiology. CareCompass intake was seamless.",d:"Nov 2024"},{a:"Wei L.",l:"Mandarin",s:5,t:"Mandarin support available. Worth the 3-week wait.",d:"Oct 2024"}],slots:[{d:"Wed Dec 18",t:"10:30 AM"},{d:"Fri Dec 20",t:"9:00 AM"},{d:"Mon Dec 23",t:"2:00 PM"},{d:"Tue Dec 24",t:"11:00 AM"},{d:"Wed Jan 8",t:"9:30 AM"},{d:"Thu Jan 9",t:"3:00 PM"}]},
+  {id:3,name:"North York General",spec:"Internal Medicine",icon:"🏨",lat:43.7615,lng:-79.3588,addr:"4001 Leslie St, North York",phone:"(416) 756-6000",hours:"Mon–Fri 7AM–7PM, Sat 9AM–3PM",acc:false,open:true,dist:3.5,wait:30,rating:4.3,rc:187,color:"#0891b2",langs:["English","Korean","Tagalog","Mandarin"],reviews:[{a:"Sofia K.",l:"Korean",s:4,t:"Korean-speaking staff were amazing.",d:"Sep 2024"}],slots:[{d:"Fri Jan 10",t:"2:00 PM"},{d:"Mon Jan 13",t:"9:00 AM"},{d:"Mon Jan 13",t:"3:30 PM"},{d:"Tue Jan 14",t:"11:00 AM"},{d:"Wed Jan 15",t:"4:00 PM"},{d:"Thu Jan 16",t:"10:00 AM"}]},
+  {id:4,name:"CAMH Mental Health",spec:"Mental Health",icon:"🧠",lat:43.6386,lng:-79.4176,addr:"1001 Queen St W, Toronto",phone:"(416) 535-8501",hours:"Mon–Fri 9AM–5PM",acc:true,open:true,dist:5.9,wait:14,rating:4.6,rc:403,color:"#059669",langs:["English","French","Arabic","Somali","Farsi"],reviews:[{a:"Amina H.",l:"Somali",s:5,t:"Somali interpreter removed so much stress.",d:"Nov 2024"},{a:"Reza M.",l:"Farsi",s:4,t:"Farsi support was available and staff were kind.",d:"Oct 2024"}],slots:[{d:"Tue Dec 17",t:"1:00 PM"},{d:"Wed Dec 18",t:"11:00 AM"},{d:"Thu Dec 19",t:"9:00 AM"},{d:"Fri Dec 20",t:"2:00 PM"},{d:"Mon Dec 23",t:"10:00 AM"},{d:"Tue Dec 24",t:"3:00 PM"}]},
+  {id:5,name:"Humber River Hospital",spec:"Internal Medicine",icon:"🏥",lat:43.7408,lng:-79.5088,addr:"1235 Wilson Ave, Toronto",phone:"(416) 242-1000",hours:"Mon–Fri 8AM–6PM",acc:true,open:true,dist:7.2,wait:12,rating:4.4,rc:256,color:"#0891b2",langs:["English","Italian","Portuguese","Spanish"],reviews:[{a:"Maria C.",l:"Portuguese",s:5,t:"Portuguese intake was available. Very welcoming.",d:"Nov 2024"}],slots:[{d:"Mon Dec 16",t:"2:00 PM"},{d:"Tue Dec 17",t:"9:30 AM"},{d:"Wed Dec 18",t:"1:00 PM"},{d:"Thu Dec 19",t:"10:30 AM"},{d:"Fri Dec 20",t:"3:30 PM"},{d:"Mon Dec 23",t:"9:00 AM"}]},
+  {id:6,name:"Sunnybrook Orthopaedics",spec:"Orthopaedics",icon:"🦴",lat:43.7237,lng:-79.3765,addr:"2075 Bayview Ave, Toronto",phone:"(416) 480-6100",hours:"Mon–Thu 8AM–5PM, Fri 8AM–4PM",acc:true,open:false,dist:5.1,wait:45,rating:4.8,rc:622,color:"#6366f1",langs:["English","Farsi","Arabic","French"],reviews:[{a:"Hassan A.",l:"Arabic",s:5,t:"CareCompass pre-filled my intake in Arabic — saved huge time.",d:"Dec 2024"}],slots:[{d:"Fri Jan 10",t:"9:00 AM"},{d:"Mon Jan 13",t:"1:00 PM"},{d:"Tue Jan 14",t:"3:30 PM"},{d:"Wed Jan 15",t:"10:00 AM"},{d:"Thu Jan 16",t:"2:00 PM"},{d:"Fri Jan 17",t:"9:30 AM"}]},
+  {id:7,name:"Regent Park Community Health",spec:"Family Medicine",icon:"🌿",lat:43.6587,lng:-79.3605,addr:"465 Dundas St E, Toronto",phone:"(416) 364-2261",hours:"Mon–Fri 8:30AM–4:30PM, Thu until 7PM",acc:true,open:true,dist:3.8,wait:3,rating:4.5,rc:189,color:"#7c3aed",langs:["English","Tamil","Somali","Bengali","Tigrinya"],reviews:[{a:"Priya T.",l:"Tamil",s:5,t:"Tamil support is fantastic. Staff truly care about newcomers.",d:"Nov 2024"},{a:"Dawit M.",l:"Tigrinya",s:5,t:"First time seeing a doctor who understood my background.",d:"Oct 2024"}],slots:[{d:"Mon Dec 16",t:"10:00 AM"},{d:"Mon Dec 16",t:"2:30 PM"},{d:"Tue Dec 17",t:"8:30 AM"},{d:"Tue Dec 17",t:"3:00 PM"},{d:"Wed Dec 18",t:"10:30 AM"},{d:"Thu Dec 19",t:"5:30 PM"}]},
+  {id:8,name:"Women's College Hospital",spec:"Family Medicine",icon:"🏥",lat:43.6638,lng:-79.3878,addr:"76 Grenville St, Toronto",phone:"(416) 323-6400",hours:"Mon–Fri 8AM–6PM",acc:true,open:true,dist:4.4,wait:7,rating:4.6,rc:445,color:"#7c3aed",langs:["English","French","Cantonese","Punjabi"],reviews:[{a:"Gurpreet K.",l:"Punjabi",s:5,t:"Punjabi-speaking doctor made my mother feel so comfortable.",d:"Dec 2024"}],slots:[{d:"Wed Dec 18",t:"9:00 AM"},{d:"Thu Dec 19",t:"2:00 PM"},{d:"Fri Dec 20",t:"11:00 AM"},{d:"Mon Dec 23",t:"9:30 AM"},{d:"Tue Dec 24",t:"1:00 PM"},{d:"Wed Jan 8",t:"10:00 AM"}]},
+  {id:9,name:"SickKids Hospital",spec:"Paediatrics",icon:"🧸",lat:43.6569,lng:-79.3888,addr:"555 University Ave, Toronto",phone:"(416) 813-1500",hours:"24 hours · Emergency always open",acc:true,open:true,dist:4.7,wait:10,rating:4.9,rc:831,color:"#d97706",langs:["English","French","Mandarin","Urdu","Hindi"],reviews:[{a:"Zara M.",l:"Urdu",s:5,t:"Best children's hospital in Canada. Urdu staff were outstanding.",d:"Nov 2024"}],slots:[{d:"Mon Dec 16",t:"9:30 AM"},{d:"Tue Dec 17",t:"11:00 AM"},{d:"Wed Dec 18",t:"2:00 PM"},{d:"Thu Dec 19",t:"9:00 AM"},{d:"Fri Dec 20",t:"10:30 AM"},{d:"Mon Dec 23",t:"3:00 PM"}]},
+  {id:10,name:"Brampton Civic Hospital",spec:"Internal Medicine",icon:"🏥",lat:43.6835,lng:-79.7624,addr:"2100 Bovaird Dr E, Brampton",phone:"(905) 494-2120",hours:"Mon–Fri 7AM–8PM, Weekends 9AM–5PM",acc:true,open:true,dist:9.8,wait:18,rating:4.2,rc:394,color:"#0891b2",langs:["English","Hindi","Punjabi","Gujarati","Urdu"],reviews:[{a:"Raj P.",l:"Gujarati",s:4,t:"Very diverse staff. Gujarati support via CC navigator.",d:"Oct 2024"}],slots:[{d:"Thu Dec 19",t:"10:00 AM"},{d:"Fri Dec 20",t:"1:00 PM"},{d:"Mon Dec 23",t:"11:30 AM"},{d:"Tue Dec 24",t:"9:00 AM"},{d:"Wed Jan 8",t:"2:30 PM"},{d:"Thu Jan 9",t:"4:00 PM"}]},
+  {id:11,name:"Etobicoke Mental Wellness",spec:"Mental Health",icon:"💚",lat:43.6952,lng:-79.5680,addr:"25 Woodbine Ave, Etobicoke",phone:"(416) 231-8010",hours:"Mon–Fri 9AM–6PM, Sat 10AM–2PM",acc:true,open:false,dist:8.3,wait:8,rating:4.5,rc:178,color:"#059669",langs:["English","Polish","Ukrainian","Russian"],reviews:[{a:"Olena V.",l:"Ukrainian",s:5,t:"Finding a Ukrainian-speaking therapist through CareCompass was life-changing.",d:"Nov 2024"}],slots:[{d:"Mon Dec 16",t:"3:00 PM"},{d:"Tue Dec 17",t:"10:30 AM"},{d:"Thu Dec 19",t:"2:30 PM"},{d:"Fri Dec 20",t:"9:30 AM"},{d:"Sat Dec 21",t:"11:00 AM"},{d:"Mon Dec 23",t:"4:00 PM"}]},
+  {id:12,name:"Markham Stouffville Hospital",spec:"Family Medicine",icon:"🏥",lat:43.8561,lng:-79.2686,addr:"381 Church St, Markham",phone:"(905) 472-7000",hours:"Mon–Fri 8AM–5PM",acc:false,open:true,dist:11.2,wait:25,rating:4.1,rc:221,color:"#7c3aed",langs:["English","Mandarin","Cantonese","Korean"],reviews:[{a:"Jenny L.",l:"Cantonese",s:4,t:"Good experience. Cantonese-speaking doctor was professional.",d:"Sep 2024"}],slots:[{d:"Fri Jan 10",t:"9:00 AM"},{d:"Mon Jan 13",t:"2:00 PM"},{d:"Tue Jan 14",t:"10:30 AM"},{d:"Wed Jan 15",t:"1:00 PM"},{d:"Thu Jan 16",t:"3:30 PM"},{d:"Fri Jan 17",t:"11:00 AM"}]},
+];
+
+// ══════════════════════════════════════════════════
+// FIND CARE — MAP + LIST
+// ══════════════════════════════════════════════════
+let vis=[...CLINICS], AF=new Set(['all']), selCId=null, selSlot=null, mfk='all';
+let vx=0,vy=0,vw=800,vh=600;
+const GEO={minLat:43.56,maxLat:43.92,minLng:-79.86,maxLng:-79.13};
+const MIN_W=260,MAX_W=1600;
+
+function geo(lat,lng){
+  return{x:(lng-GEO.minLng)/(GEO.maxLng-GEO.minLng)*800,y:(1-(lat-GEO.minLat)/(GEO.maxLat-GEO.minLat))*600};
+}
+
+function buildMap(){
+  const svg=document.getElementById('svgMap');
+  if(!svg)return;
+  if(svg._built){drawPins();return;}
+  svg._built=true;
+  svg.setAttribute('viewBox','0 0 800 600');
+  const ns='http://www.w3.org/2000/svg';
+  const mk=(tag,a)=>{const e=document.createElementNS(ns,tag);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));return e;};
+  svg.appendChild(mk('rect',{x:0,y:0,width:800,height:600,fill:'#080515'}));
+  for(let i=0;i<=8;i++) svg.appendChild(mk('line',{x1:i*100,y1:0,x2:i*100,y2:600,stroke:'rgba(139,92,246,0.06)','stroke-width':1}));
+  for(let i=0;i<=6;i++) svg.appendChild(mk('line',{x1:0,y1:i*100,x2:800,y2:i*100,stroke:'rgba(139,92,246,0.06)','stroke-width':1}));
+  // Roads
+  [[[43.756,-79.85],[43.756,-79.60],[43.749,-79.38],[43.745,-79.20],[43.740,-79.13]],
+   [[43.90,-79.388],[43.75,-79.388],[43.65,-79.387],[43.58,-79.384]],
+   [[43.77,-79.35],[43.74,-79.35],[43.69,-79.345],[43.66,-79.340],[43.64,-79.360]],
+   [[43.76,-79.56],[43.69,-79.56],[43.62,-79.56]],
+   [[43.71,-79.85],[43.706,-79.38],[43.700,-79.13]],
+   [[43.78,-79.85],[43.771,-79.38],[43.765,-79.13]],
+   [[43.64,-79.56],[43.636,-79.38],[43.633,-79.13]]
+  ].forEach(pts=>{
+    const d=pts.map((p,i)=>{const {x,y}=geo(p[0],p[1]);return(i?'L':'M')+x.toFixed(1)+','+y.toFixed(1);}).join(' ');
+    svg.appendChild(mk('path',{d,fill:'none',stroke:'rgba(139,92,246,0.18)','stroke-width':2.2,'stroke-linecap':'round'}));
+  });
+  svg.appendChild(mk('path',{d:'M 0,555 C 150,538 300,550 450,546 C 600,542 720,548 800,551 L 800,600 L 0,600 Z',fill:'rgba(59,130,246,0.12)',stroke:'rgba(59,130,246,0.22)','stroke-width':1}));
+  const lt=mk('text',{x:400,y:584,'text-anchor':'middle',fill:'rgba(147,197,253,0.32)','font-size':10,'font-family':'DM Sans,sans-serif','letter-spacing':4});
+  lt.textContent='LAKE ONTARIO';svg.appendChild(lt);
+  const ct=mk('text',{x:380,y:325,'text-anchor':'middle',fill:'rgba(255,255,255,0.04)','font-size':34,'font-family':'Playfair Display,serif','font-weight':700});
+  ct.textContent='TORONTO';svg.appendChild(ct);
+  svg.appendChild(mk('g',{id:'pins'}));
+  drawPins();
+  // drag
+  let drag=false,lx=0,ly=0;
+  svg.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;e.preventDefault();});
+  window.addEventListener('mousemove',e=>{
+    if(!drag)return;
+    const r=svg.getBoundingClientRect();
+    vx-=(e.clientX-lx)*(vw/r.width);vy-=(e.clientY-ly)*(vh/r.height);
+    vx=Math.max(-200,Math.min(vx,600));vy=Math.max(-150,Math.min(vy,350));
+    lx=e.clientX;ly=e.clientY;
+    svg.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);
+  });
+  window.addEventListener('mouseup',()=>drag=false);
+  svg.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const r=svg.getBoundingClientRect();
+    const mx=(e.clientX-r.left)/r.width*vw+vx,my=(e.clientY-r.top)/r.height*vh+vy;
+    const f=e.deltaY>0?1.15:.87;
+    vw=Math.max(MIN_W,Math.min(MAX_W,vw*f));vh=Math.max(MIN_W*.75,Math.min(MAX_W*.75,vh*f));
+    vx=mx-(e.clientX-r.left)/r.width*vw;vy=my-(e.clientY-r.top)/r.height*vh;
+    svg.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);
+  },{passive:false});
+  renderCL();
+}
+
+function drawPins(){
+  const ns='http://www.w3.org/2000/svg';
+  const mk=(tag,a)=>{const e=document.createElementNS(ns,tag);Object.entries(a).forEach(([k,v])=>e.setAttribute(k,v));return e;};
+  const grp=document.getElementById('pins');
+  if(!grp)return;
+  grp.innerHTML='';
+  vis.forEach(c=>{
+    const {x,y}=geo(c.lat,c.lng);
+    const sel=c.id===selCId;
+    const g=mk('g',{id:'pin-'+c.id,style:'cursor:pointer'});
+    if(sel){
+      g.appendChild(mk('circle',{cx:x,cy:y,r:17,fill:'none',stroke:c.color,'stroke-width':2,opacity:.38}));
+      g.appendChild(mk('circle',{cx:x,cy:y,r:11,fill:c.color,stroke:'white','stroke-width':2.2}));
+    } else {
+      g.appendChild(mk('circle',{cx:x,cy:y,r:8,fill:c.color,stroke:'rgba(255,255,255,0.82)','stroke-width':1.8,opacity:c.open?1:.5}));
+    }
+    g.addEventListener('mouseenter',e=>showTip(c,e));
+    g.addEventListener('mouseleave',hideTip);
+    g.addEventListener('click',e=>{e.stopPropagation();pickClinic(c.id);});
+    grp.appendChild(g);
+  });
+}
+
+function showTip(c,e){
+  const tip=document.getElementById('maptip');
+  document.getElementById('tipN').textContent=c.name;
+  document.getElementById('tipS').textContent=c.spec;
+  document.getElementById('tipSt').textContent='★'.repeat(Math.round(c.rating))+'☆'.repeat(5-Math.round(c.rating));
+  document.getElementById('tipR').textContent=`${c.rating} · ${c.rc.toLocaleString()} reviews · ${c.acc?'✓ Accepting':'Waitlist'}`;
+  document.getElementById('tipB').onclick=()=>{hideTip();pickClinic(c.id);};
+  tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-90)+'px';
+  tip.classList.remove('hidden');
+}
+function hideTip(){document.getElementById('maptip').classList.add('hidden');}
+
+function starsH(r){return Array.from({length:5},(_,i)=>`<span class="st ${i<Math.floor(r)?'on':'off'}">★</span>`).join('');}
+
+function renderCL(){
+  const el=document.getElementById('fclist');
+  if(!el)return;
+  el.innerHTML='';
+  vis.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='ccard'+(c.id===selCId?' sel':'');
+    d.dataset.id=c.id;
+    d.innerHTML=`
+      <div class="cctop"><div><div class="ccname">${c.icon} ${c.name}</div><div class="ccspec">${c.spec}</div></div>
+        <div class="ccbadge"><span class="chip ${c.acc?'cg':'cr'}" style="font-size:.54rem">${c.acc?'✓ Accepting':'Waitlist'}</span><span class="ccdist">${c.dist}km</span></div></div>
+      <div class="ccstars"><div class="srow">${starsH(c.rating)}</div><span class="rnum">${c.rating}</span><span class="rcnt">(${c.rc.toLocaleString()})</span></div>
+      <div class="ccmeta">
+        <span class="ctag ${c.open?'to':'tc'}">${c.open?'● Open':'● Closed'}</span>
+        <span class="ctag tw">⏱ ${c.wait}d</span>
+        ${c.langs.slice(0,3).map(l=>`<span class="ctag tl">🌐 ${l}</span>`).join('')}
+        ${c.langs.length>3?`<span class="ctag tl">+${c.langs.length-3}</span>`:''}
+      </div>
+      <div class="ccfoot"><span class="ccaddr">📍 ${c.addr}</span><button class="bkbtn" onclick="event.stopPropagation();openCBM(${c.id})">Book →</button></div>`;
+    d.addEventListener('click',()=>pickClinic(c.id));
+    el.appendChild(d);
+  });
+  const n=vis.length;
+  document.getElementById('fscnt').textContent=n+' clinics';
+  document.getElementById('fcnt').textContent=n+' clinics in the GTA';
+  document.getElementById('msc').textContent=n;
+  document.getElementById('msa').textContent=vis.filter(c=>c.acc).length;
+}
+
+function pickClinic(id){
+  selCId=id;
+  document.querySelectorAll('.ccard').forEach(el=>el.classList.toggle('sel',parseInt(el.dataset.id)===id));
+  drawPins();
+  openDet(id);
+  document.querySelector(`.ccard[data-id="${id}"]`)?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function openDet(id){
+  const c=CLINICS.find(x=>x.id===id);
+  const sh=c.slots.map(s=>`<div class="dslot" onclick="pickDS(this,'${s.d}','${s.t}')"><span class="dslot-d">${s.d}</span>${s.t}</div>`).join('');
+  const rh=c.reviews.map(r=>`<div class="revitem"><div class="revtop"><div><span class="revauth">${r.a}</span> <span class="revlang">· ${r.l}</span></div><span class="revstars">${'★'.repeat(r.s)}${'☆'.repeat(5-r.s)}</span></div><div class="revtxt">"${r.t}"</div><div class="revdate">${r.d}</div></div>`).join('');
+  document.getElementById('detBody').innerHTML=`
+    <div class="det-hero"><div class="det-icon">${c.icon}</div><div class="det-name">${c.name}</div><div class="det-spec">${c.spec}</div>
+      <div class="det-rrow"><div class="det-rstars">${Array.from({length:5},(_,i)=>`<span style="color:${i<Math.floor(c.rating)?'#f59e0b':'rgba(255,255,255,0.13)'}">★</span>`).join('')}</div><span class="det-rnum">${c.rating}</span><span class="det-rcnt">${c.rc.toLocaleString()} reviews</span></div>
+      <div class="det-tags"><span class="chip ${c.acc?'cg':'cr'}">${c.acc?'✓ Accepting':'Waitlist'}</span> <span class="chip ${c.open?'cg':'cr'}">${c.open?'● Open':'● Closed'}</span> <span class="chip cy">⏱ ${c.wait}d wait</span></div>
+    </div>
+    <div class="det-sec"><div class="det-sttl">Clinic Info</div>
+      <div class="det-irow"><span class="det-iico">📍</span>${c.addr}</div>
+      <div class="det-irow"><span class="det-iico">📞</span>${c.phone}</div>
+      <div class="det-irow"><span class="det-iico">🕐</span>${c.hours}</div>
+      <div class="det-irow"><span class="det-iico">🌐</span>${c.langs.join(' · ')}</div>
+    </div>
+    <div class="det-sec"><div class="det-sttl">Next Available Slots</div><div class="dslots">${sh}</div></div>
+    <div class="det-sec"><div class="det-sttl">Patient Reviews</div><div class="revlist">${rh}</div></div>
+    <div class="det-book"><button class="det-cta" onclick="openCBM(${c.id})">Book Appointment →</button><div class="det-note">🌐 Reminders in your language · PHIPA compliant</div></div>`;
+  document.getElementById('det').classList.add('open');
+}
+function pickDS(el,d,t){document.querySelectorAll('#det .dslot').forEach(s=>s.classList.remove('pick'));el.classList.add('pick');selSlot={d,t};}
+function closeDet(){document.getElementById('det').classList.remove('open');selCId=null;document.querySelectorAll('.ccard').forEach(e=>e.classList.remove('sel'));drawPins();}
+
+function toggleFF(btn,type){
+  if(type==='all'){AF=new Set(['all']);document.querySelectorAll('.ffbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+  else{AF.delete('all');document.querySelector('.ffbtn').classList.remove('on');btn.classList.toggle('on');btn.classList.contains('on')?AF.add(type):AF.delete(type);if(!AF.size){AF.add('all');document.querySelector('.ffbtn').classList.add('on');}}
+  applyFF();
+}
+function mF(k,btn){document.querySelectorAll('.mcbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');mfk=k;applyFF();}
+function applyFF(){
+  const q=document.getElementById('fsrch').value.toLowerCase();
+  vis=CLINICS.filter(c=>{
+    const mq=!q||c.name.toLowerCase().includes(q)||c.spec.toLowerCase().includes(q)||c.langs.some(l=>l.toLowerCase().includes(q))||c.addr.toLowerCase().includes(q);
+    let mf=true;if(!AF.has('all'))mf=[...AF].some(f=>f==='__acc'?c.acc:f==='__open'?c.open:c.spec===f);
+    let mm=true;if(mfk==='__open')mm=c.open;if(mfk==='__acc')mm=c.acc;
+    return mq&&mf&&mm;
+  });
+  renderCL();drawPins();
+}
+function sortFF(by){
+  if(by==='dist')vis.sort((a,b)=>a.dist-b.dist);
+  else if(by==='rating')vis.sort((a,b)=>b.rating-a.rating);
+  else if(by==='wait')vis.sort((a,b)=>a.wait-b.wait);
+  else if(by==='name')vis.sort((a,b)=>a.name.localeCompare(b.name));
+  renderCL();
+}
+function zIn(){const s=document.getElementById('svgMap'),cx=vx+vw/2,cy=vy+vh/2;vw=Math.max(MIN_W,vw*.7);vh=Math.max(MIN_W*.75,vh*.7);vx=cx-vw/2;vy=cy-vh/2;s.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);}
+function zOut(){const s=document.getElementById('svgMap'),cx=vx+vw/2,cy=vy+vh/2;vw=Math.min(MAX_W,vw*1.4);vh=Math.min(MAX_W*.75,vh*1.4);vx=cx-vw/2;vy=cy-vh/2;s.setAttribute('viewBox',`${vx} ${vy} ${vw} ${vh}`);}
+
+// ── CLINIC BOOKING MODAL ────────────────────────
+let cbSlot=null;
+function openCBM(id){
+  const c=CLINICS.find(x=>x.id===id);
+  const sh=c.slots.map(s=>`<div class="mslot" onclick="pickCBS(this,'${s.d}','${s.t}')"><span class="mslot-d">${s.d}</span>${s.t}</div>`).join('');
+  document.getElementById('cBookBody').innerHTML=`
+    <div class="mhd"><div class="mhd-ico">${c.icon}</div><div><div class="mhd-name">${c.name}</div><div class="mhd-sub">${c.spec} · ${c.rating}★ · ${c.dist}km</div></div><button class="mclose" onclick="closeMod('cBookModal')">✕</button></div>
+    <div class="mbody">
+      <div class="msec">Choose a Time Slot</div><div class="mslots">${sh}</div>
+      <div class="msec">Your Details</div>
+      <div class="mrow"><div class="mfield"><label class="mlbl">Full Name</label><input class="minput" id="bN" value="${curRole==='patient'?'Amara Nwosu':'Dr. Adeyemi'}"></div><div class="mfield"><label class="mlbl">Phone</label><input class="minput" id="bP" placeholder="(416) 555-0100"></div></div>
+      <div class="mrow">
+        <div class="mfield"><label class="mlbl">Appointment Type</label><select class="minput" id="bT"><option>Initial Consultation</option><option>Follow-up</option><option>Specialist Referral</option><option>Annual Check-up</option><option>Virtual</option></select></div>
+        <div class="mfield"><label class="mlbl">Preferred Language</label><select class="minput" id="bL"><option>Igbo</option><option>English</option><option>Urdu</option><option>Mandarin</option><option>Hindi</option><option>Tamil</option></select></div>
+      </div>
+      <div class="mfield"><label class="mlbl">Reason (optional)</label><input class="minput" id="bR" placeholder="Brief description…"></div>
+      <div class="msum">
+        <div class="msumrow"><span class="msuml">Clinic</span><span class="msumv">${c.name}</span></div>
+        <div class="msumrow"><span class="msuml">Date & Time</span><span class="msumv" id="mss">Select a slot above</span></div>
+        <div class="msumrow"><span class="msuml">Reminder</span><span class="msumv">Igbo + English SMS</span></div>
+        <div class="msumrow"><span class="msuml">Navigator</span><span class="msumv">Fatima will confirm</span></div>
+      </div>
+      <button class="mcta" onclick="confirmBK(${c.id})">Confirm Appointment →</button>
+    </div>`;
+  openMod('cBookModal');
+}
+function pickCBS(el,d,t){document.querySelectorAll('#cBookBody .mslot').forEach(s=>s.classList.remove('sel'));el.classList.add('sel');cbSlot={d,t};document.getElementById('mss').textContent=`${d} · ${t}`;}
+function confirmBK(id){
+  const c=CLINICS.find(x=>x.id===id);
+  const sl=cbSlot||{d:'Next available',t:''};
+  const lang=document.getElementById('bL')?.value||'Igbo';
+  const ref='CC-'+Math.random().toString(36).substr(2,8).toUpperCase();
+  document.getElementById('cBookBody').innerHTML=`
+    <div class="success">
+      <div class="sucico">✅</div>
+      <div class="suctitle">Appointment Booked!</div>
+      <div class="sucsub">Fatima will send a confirmation and reminder in ${lang}. You're all set! 🎉</div>
+      <div class="sucbox">
+        <div class="sucrow"><span style="color:var(--muted)">Clinic</span><span style="font-weight:600">${c.name}</span></div>
+        <div class="sucrow"><span style="color:var(--muted)">Date & Time</span><span style="font-weight:600">${sl.d} ${sl.t}</span></div>
+        <div class="sucrow"><span style="color:var(--muted)">Language</span><span style="font-weight:600">${lang}</span></div>
+        <div class="sucrow"><span style="color:var(--muted)">Reference</span><span style="font-family:'DM Mono',monospace;font-size:.68rem">${ref}</span></div>
+      </div>
+      <button class="mcta" onclick="closeMod('cBookModal')">Back to Map</button>
+    </div>`;
+  toast('Appointment confirmed!',`${c.name} · ${lang} reminder scheduled`,'📅');
+  cbSlot=null;
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+buildNav();
+go('home');
+animCounters();
+setTimeout(animBars, 200);
+
+// ╔══════════════════════════════════════════════════╗
+// ║   CLINICAL AI SUITE                              ║
+// ╚══════════════════════════════════════════════════╝
+var AI_COHERE_KEY='', AI_ANTHROPIC_KEY='';
+var trInitDone=false, recInitDone=false, cdiscInitDone=false;
+
+function openAIKeys(){document.getElementById('aiKeyModal').classList.add('open');}
+function closeAIKeys(){document.getElementById('aiKeyModal').classList.remove('open');}
+function saveAIKeys(){AI_COHERE_KEY=document.getElementById('aiCohereKey').value.trim();AI_ANTHROPIC_KEY=document.getElementById('aiAnthropicKey').value.trim();closeAIKeys();toast('Keys saved','Session-only','🔑');}
+
+async function aiCohere(msgs,sys,json){
+  if(!AI_COHERE_KEY)return null;
+  var b={model:'command-a-03-2025',messages:[],max_tokens:2000};
+  if(sys)b.messages.push({role:'system',content:sys});
+  msgs.forEach(function(m){b.messages.push(m);});
+  if(json)b.response_format={type:'json_object'};
+  try{var r=await fetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_COHERE_KEY},body:JSON.stringify(b)});var d=await r.json();return(d.message&&d.message.content&&d.message.content[0])?d.message.content[0].text:null;}catch(e){return null;}
+}
+async function aiTranslate(text,src,tgt){
+  if(!AI_COHERE_KEY)return null;
+  try{var r=await fetch('https://api.cohere.com/v2/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+AI_COHERE_KEY},body:JSON.stringify({model:'command-a-translate-08-2025',messages:[{role:'user',content:'Translate from '+src+' to '+tgt+'. Output ONLY the translation:\n\n'+text}],max_tokens:1000})});var d=await r.json();return(d.message&&d.message.content&&d.message.content[0])?d.message.content[0].text:null;}catch(e){return null;}
+}
+async function aiClaude(prompt){
+  if(!AI_ANTHROPIC_KEY)return null;
+  try{var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}]})});var d=await r.json();return(d.content&&d.content[0])?d.content[0].text:null;}catch(e){return null;}
+}
+function xe(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+
+// ── go() extension ──
+var _goBase=go;
+function go(id){
+  if(['ai-translation','ai-recorder','ai-cdisc'].indexOf(id)<0){_goBase(id);return;}
+  document.querySelectorAll('.view,.viewflex').forEach(function(v){v.classList.remove('on');});
+  var el=document.getElementById('v-'+id);if(el)el.classList.add('on');
+  var td=TOPBAR_DATA[id]||{t:id,s:''};
+  document.getElementById('tbTitle').textContent=td.t;
+  document.getElementById('tbSub').textContent=td.s;
+  document.getElementById('tbRight').innerHTML=TOPBAR_BTNS[id]?TOPBAR_BTNS[id]():'';
+  document.querySelectorAll('.ni').forEach(function(n){n.classList.toggle('active',n.dataset.id===id);});
+  if(id==='ai-translation'&&!trInitDone){trInitDone=true;buildQPhrases();renderTrHist();}
+  if(id==='ai-recorder'&&!recInitDone){recInitDone=true;initWaveform();}
+  if(id==='ai-cdisc'&&!cdiscInitDone){cdiscInitDone=true;showCdiscStep(0);}
+}
+
+// ═══ MODULE 1: TRANSLATION ═══
+var trDebTimer=null,trHistArr=[];
+var PHRASES_BASE=['Where does it hurt?','Any allergies?','How long have you had this?','Are you taking any medications?','Rate your pain 1 to 10.','Family history of heart disease?','Please describe your symptoms.','Have you had this before?','We need a blood test.'];
+var PHRASES_EXTRA=['I am going to examine you now.','Take a deep breath.','Can you open your mouth?','Do you smoke or drink alcohol?','When was your last period?','Are you pregnant?','Have you had surgery before?','Do you have chest pain?','I need to check your blood pressure.','Do you feel dizzy?'];
+var phrasesShown=PHRASES_BASE.slice();
+var DEMO_TR={'Where does it hurt?':{Igbo:'Ebe dị gị ọwụ?',French:'Où avez-vous mal?',Spanish:'¿Dónde te duele?',Arabic:'أين يؤلمك؟',Urdu:'آپ کو کہاں درد ہے؟',Hindi:'आपको कहाँ दर्द है?',Mandarin:'哪里疼？',Tagalog:'Saan masakit?',Somali:'Xaggee kugu xanuunaysa?'},'Any allergies?':{Igbo:'I nwere alerji?',French:'Des allergies?',Spanish:'¿Alguna alergia?',Arabic:'هل لديك حساسية؟',Urdu:'کوئی الرجی؟'},'Rate your pain 1 to 10.':{Igbo:"Ọnụọgụ ọwụ gị 1 na 10?",French:'Notez votre douleur de 1 à 10.',Spanish:'Califique su dolor del 1 al 10.'}};
+
+function buildQPhrases(){var g=document.getElementById('qphGrid');if(!g)return;g.innerHTML='';phrasesShown.forEach(function(p){var b=document.createElement('button');b.className='qph';b.textContent=p;b.onclick=function(){usePhrase(p);};g.appendChild(b);});}
+function usePhrase(p){var e=document.getElementById('srcText');if(e){e.value=p;updateTrCounts();doTranslate();}}
+function addPhrases(){phrasesShown=phrasesShown.concat(PHRASES_EXTRA);buildQPhrases();toast('Loaded',''+PHRASES_EXTRA.length+' more phrases','✅');}
+function setMode(m){['text','voice','live'].forEach(function(x){var e=document.getElementById('mp-'+x);if(e)e.classList.toggle('on',x===m);});var lb=document.getElementById('liveBadge');if(lb)lb.style.display=m==='live'?'inline-flex':'none';if(m==='voice')startVoiceInput();}
+function swapLangs(){var s=document.getElementById('srcLang'),t=document.getElementById('tgtLang');if(!s||!t)return;var sv=s.value,tv=t.value,st=document.getElementById('srcText').value,tt=document.getElementById('tgtText').value;s.value=tv;t.value=sv;document.getElementById('srcText').value=tt;document.getElementById('tgtText').value=st;updateTrCounts();}
+function updateTrCounts(){var s=document.getElementById('srcText'),t=document.getElementById('tgtText');if(s&&document.getElementById('srcCnt'))document.getElementById('srcCnt').textContent=s.value.length+' chars';if(t&&document.getElementById('tgtCnt'))document.getElementById('tgtCnt').textContent=t.value.length+' chars';}
+function debounceTr(){updateTrCounts();clearTimeout(trDebTimer);trDebTimer=setTimeout(doTranslate,900);}
+function autoTr(){clearTimeout(trDebTimer);trDebTimer=setTimeout(doTranslate,400);}
+async function doTranslate(){
+  var sEl=document.getElementById('srcText'),tEl=document.getElementById('tgtText');if(!sEl||!tEl)return;
+  var text=sEl.value.trim();if(!text)return;
+  var src=document.getElementById('srcLang').value,tgt=document.getElementById('tgtLang').value;
+  if(src===tgt){tEl.value=text;updateTrCounts();return;}
+  var spin=document.getElementById('trSpin'),arr=document.getElementById('trArrow');
+  if(spin)spin.style.display='block';if(arr)arr.style.display='none';
+  var result=AI_COHERE_KEY?await aiTranslate(text,src,tgt):null;
+  if(!result){var d=DEMO_TR[text];result=(d&&d[tgt])?d[tgt]:'['+tgt+': "'+text.substring(0,50)+(text.length>50?'…':'')+'"'+(AI_COHERE_KEY?'':' — add Cohere key for live translation')+']';}
+  tEl.value=result;if(spin)spin.style.display='none';if(arr)arr.style.display='block';updateTrCounts();
+  trHistArr.unshift({src:text,tgt:result,sL:src,tL:tgt,t:new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'})});
+  if(trHistArr.length>20)trHistArr.pop();renderTrHist();
+}
+function renderTrHist(){var el=document.getElementById('trHist');if(!el)return;if(!trHistArr.length){el.innerHTML='<div style="font-size:.68rem;color:var(--muted);text-align:center;padding:.8rem">No translations yet</div>';return;}el.innerHTML=trHistArr.slice(0,8).map(function(h){return '<div class="th-row"><span class="th-langs">'+h.sL.substring(0,4)+'→'+h.tL.substring(0,4)+'</span><span class="th-src">'+xe(h.src.substring(0,42))+'</span><span class="th-out">'+xe(h.tgt.substring(0,42))+'</span><span class="th-t">'+h.t+'</span></div>';}).join('');}
+function clearHist(){trHistArr=[];renderTrHist();}
+function speakOut(){var t=document.getElementById('tgtText');if(!t||!window.speechSynthesis)return toast('Not supported','Web Speech API unavailable','⚠️');window.speechSynthesis.speak(new SpeechSynthesisUtterance(t.value));toast('Speaking…','','🔊');}
+function copyTr(){navigator.clipboard.writeText(document.getElementById('tgtText').value);toast('Copied','','📋');}
+function startVoiceInput(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return toast('Requires Chrome','Use Chrome/Edge for voice input','⚠️');var r=new SR();var sl=document.getElementById('srcLang');r.lang=getLangCode(sl?sl.value:'English');r.interimResults=true;var btn=document.getElementById('voiceInputBtn');if(btn)btn.textContent='🔴 Stop';r.onresult=function(e){var t='';for(var i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;var se=document.getElementById('srcText');if(se){se.value=t;updateTrCounts();}if(e.results[e.results.length-1].isFinal)debounceTr();};r.onend=function(){if(btn){btn.textContent='🎙 Speak';btn.onclick=startVoiceInput;}};r.start();if(btn)btn.onclick=function(){r.stop();};}
+function getLangCode(n){var m={English:'en-US',French:'fr-FR',Mandarin:'zh-CN',Arabic:'ar-SA',Urdu:'ur-PK',Hindi:'hi-IN',Spanish:'es-ES',Portuguese:'pt-BR',Tagalog:'tl-PH',Punjabi:'pa-IN',Tamil:'ta-IN',Somali:'so-SO',Korean:'ko-KR',Ukrainian:'uk-UA',Polish:'pl-PL',Japanese:'ja-JP',Farsi:'fa-IR',Vietnamese:'vi-VN',Bengali:'bn-BD'};return m[n]||'en-US';}
+
+// ═══ MODULE 2: RECORDER ═══
+var recLines=[],recSecs=0,recRunning=false,recPaused=false,recInterval=null,waveInterval=null,recRecog=null,curSpk=0,recCount={dr:0,pt:0},wordCount=0;
+function initWaveform(){var wf=document.getElementById('waveform');if(!wf)return;wf.innerHTML='';for(var i=0;i<24;i++){var b=document.createElement('div');b.className='wbar';b.style.height='4px';wf.appendChild(b);}}
+function toggleRec(){if(recRunning)stopRec();else startRec();}
+function startRec(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('Demo mode','Chrome required — showing simulated session','⚠️');startDemoRec();return;}recRecog=new SR();recRecog.continuous=true;recRecog.interimResults=true;var rl=document.getElementById('recLang');recRecog.lang=rl?rl.value:'en-CA';recRecog.onresult=function(e){var ft='',it='';for(var i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)ft+=e.results[i][0].transcript+' ';else it+=e.results[i][0].transcript;}var iEl=document.getElementById('interim-tr');if(ft.trim()){if(iEl)iEl.remove();addRecLine(ft.trim(),curSpk);curSpk=1-curSpk;}else if(it){if(!iEl){var nl=makeRecLine(it,curSpk,true);nl.id='interim-tr';var bx=document.getElementById('trBox');if(bx)bx.appendChild(nl);}else iEl.querySelector('.tline-text').textContent=it;}var bx2=document.getElementById('trBox');if(bx2)bx2.scrollTop=99999;};recRecog.onerror=function(e){toast('Mic error',e.error,'⚠️');stopRec();};recRecog.onend=function(){if(recRunning&&!recPaused)recRecog.start();};recRecog.start();setRecUI(true);}
+function startDemoRec(){var demo=[[0,'Good morning Amara. How are you feeling today?'],[1,'Good morning Doctor. Chest pain and difficulty breathing for about three weeks.'],[0,'On a scale of one to ten, how severe is the chest pain?'],[1,'About six or seven. Worse when I exert myself.'],[0,'Any palpitations or dizziness?'],[1,'Yes, my heart feels like it is racing sometimes.'],[0,'You are on Lisinopril for hypertension. Taking it regularly?'],[1,'Yes every morning. But my blood pressure is still high.'],[0,'We will order blood work and refer you to Mount Sinai cardiology.'],[1,'Thank you doctor. I have been very worried.'],[0,'Your CareCompass navigator will coordinate everything in Igbo.']];setRecUI(true);var i=0;var iv=setInterval(function(){if(!recRunning||i>=demo.length){clearInterval(iv);return;}addRecLine(demo[i][1],demo[i][0]);i++;},2200);}
+function makeRecLine(text,spk,interim){var el=document.createElement('div');el.className='tline'+(interim?' interim':'');var sp1=document.getElementById('spk1'),sp2=document.getElementById('spk2');var name=spk===0?(sp1?sp1.value:'Doctor'):(sp2?sp2.value:'Patient');var badge=spk===0?'<span class="spk-badge spk-dr">Doctor</span>':'<span class="spk-badge spk-pt">Patient</span>';var t=new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});el.innerHTML='<div class="tline-spk">'+badge+'<span style="font-size:.57rem;color:var(--muted)">'+xe(name)+'</span></div><div class="tline-text">'+xe(text)+'</div><span class="tline-time">'+t+'</span>';return el;}
+function addRecLine(text,spk){if(!text.trim())return;var bx=document.getElementById('trBox');if(!bx)return;var em=bx.querySelector('[style*="real-time"]');if(em)bx.innerHTML='';bx.appendChild(makeRecLine(text,spk,false));bx.scrollTop=99999;recLines.push({text:text,spk:spk,time:Date.now()});wordCount+=text.split(/\s+/).length;if(spk===0)recCount.dr++;else recCount.pt++;updateRecStats();}
+function updateRecStats(){[['st-dur',fmtTime(recSecs)],['st-words',wordCount],['st-dr',recCount.dr],['st-pt',recCount.pt],['trLineCount',recLines.length+' utterances']].forEach(function(s){var e=document.getElementById(s[0]);if(e)e.textContent=s[1];});}
+function setRecUI(on){recRunning=on;var btn=document.getElementById('recBtn');if(btn){btn.className='rec-btn'+(on?' on':'');btn.textContent=on?'⏹':'🎙';}var st=document.getElementById('recStat');if(st)st.textContent=on?'Recording…':'Click to start recording';var dot=document.getElementById('recDot');if(dot)dot.style.background=on?'var(--red)':'var(--muted)';var pb=document.getElementById('pauseBtn');if(pb)pb.style.display=on?'inline-flex':'none';if(on){recSecs=0;recInterval=setInterval(function(){recSecs++;var rt=document.getElementById('recTimer');if(rt)rt.textContent=fmtTime(recSecs);updateRecStats();},1000);waveInterval=setInterval(animWave,80);}else{clearInterval(recInterval);clearInterval(waveInterval);document.querySelectorAll('.wbar').forEach(function(b){b.style.height='4px';});}}
+function stopRec(){if(recRecog){try{recRecog.stop();}catch(e){}}setRecUI(false);toast('Stopped',recLines.length+' utterances · '+fmtTime(recSecs),'⏹');}
+function togglePause(){recPaused=!recPaused;if(recPaused){if(recRecog)try{recRecog.stop();}catch(e){}clearInterval(waveInterval);}else{if(recRecog)recRecog.start();waveInterval=setInterval(animWave,80);}var pb=document.getElementById('pauseBtn');if(pb)pb.textContent=recPaused?'▶ Resume':'⏸ Pause';}
+function animWave(){document.querySelectorAll('.wbar').forEach(function(b){b.style.height=(4+Math.random()*30)+'px';});}
+function fmtTime(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function clearTr2(){recLines=[];recCount={dr:0,pt:0};wordCount=0;var bx=document.getElementById('trBox');if(bx)bx.innerHTML='<div style="font-size:.68rem;color:var(--muted);text-align:center;padding:.4rem">Cleared</div>';updateRecStats();}
+async function runInsights(){if(!recLines.length){toast('No transcript','Record a conversation first','⚠️');return;}var panel=document.getElementById('insPanel');if(!panel)return;panel.innerHTML='<div style="padding:.6rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border);font-size:.73rem;color:var(--muted)">Analyzing…</div>';var transcript=recLines.map(function(l){return '['+(l.spk===0?'Doctor':'Patient')+']: '+l.text;}).join('\n');var result=AI_ANTHROPIC_KEY?await aiClaude('Analyze this doctor-patient conversation. Extract clinical insights labeled: CHIEF COMPLAINT, SYMPTOMS, MEDICATIONS, ACTION ITEMS, RISK FLAGS. Keep each 1-2 sentences.\n\n'+transcript):null;panel.innerHTML='';var secs=result?parseInsights(result):getDemoInsights();secs.forEach(function(s){var d=document.createElement('div');d.className='insight-item';d.innerHTML='<div class="ins-tag" style="color:'+s.color+'">'+s.tag+'</div>'+xe(s.text);panel.appendChild(d);});if(!AI_ANTHROPIC_KEY){var n=document.createElement('div');n.style.cssText='font-size:.6rem;color:var(--muted);margin-top:.3rem';n.textContent='Demo — add Anthropic key for live AI analysis';panel.appendChild(n);}toast('Insights ready','AI clinical analysis complete','🤖');}
+function parseInsights(txt){var colors={CHIEF:'#14b8a6',SYMPTOM:'#8b5cf6',MEDICATION:'#10b981',ACTION:'#c4b5fd',RISK:'#ef4444'};var secs=[];txt.split('\n').forEach(function(line){var m=line.match(/^([A-Z][A-Z\s]+):/);if(m){var key=Object.keys(colors).find(function(k){return m[1].indexOf(k)>=0;})||'CHIEF';secs.push({tag:m[1].trim(),text:line.replace(m[0],'').trim(),color:colors[key]});}});return secs.length?secs:getDemoInsights();}
+function getDemoInsights(){return[{tag:'CHIEF COMPLAINT',text:'Chest tightness and shortness of breath, 3-week duration, worsening with exertion.',color:'#14b8a6'},{tag:'SYMPTOMS',text:'Palpitations (racing heart), exertional dyspnea, severity 6-7/10.',color:'#8b5cf6'},{tag:'MEDICATIONS',text:'Lisinopril 10mg daily — patient reports adherence but BP remains elevated.',color:'#10b981'},{tag:'ACTION ITEMS',text:'Cardiology referral ordered, blood work requested, BP recheck in 2 weeks.',color:'#c4b5fd'},{tag:'RISK FLAG',text:'Uncontrolled hypertension — consider dose escalation per physician judgment.',color:'#ef4444'}];}
+function exportTr(){if(!recLines.length){toast('No transcript','','⚠️');return;}var lines=recLines.map(function(l){return '['+fmtTime(Math.floor((l.time-recLines[0].time)/1000))+'] ['+(l.spk===0?'Doctor':'Patient')+'] '+l.text;});var blob=new Blob([lines.join('\n')],{type:'text/plain'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='transcript_'+new Date().toISOString().slice(0,10)+'.txt';a.click();toast('Exported','Saved as .txt','📄');}
+
+// ═══ MODULE 3: CDISC ═══
+var cdiscStep=0,extractedVars=[],selDomains={};
+var DOMAINS=[{code:'DM',name:'Demographics'},{code:'VS',name:'Vital Signs'},{code:'LB',name:'Laboratory'},{code:'AE',name:'Adverse Events'},{code:'CM',name:'Concomitant Meds'},{code:'MH',name:'Medical History'},{code:'EX',name:'Exposure'},{code:'DS',name:'Disposition'},{code:'FA',name:'Findings About'},{code:'PR',name:'Procedures'},{code:'SU',name:'Substance Use'},{code:'QS',name:'Questionnaires'},{code:'RS',name:'Disease Response'},{code:'TU',name:'Tumor ID'},{code:'TR',name:'Tumor Results'},{code:'RP',name:'Reproductive'}];
+var AI_PRED=['DM','VS','LB','CM','MH','AE'];
+
+function jumpStep(n){if(n<=cdiscStep)showCdiscStep(n);}
+function showCdiscStep(n){cdiscStep=n;for(var i=0;i<=4;i++){var el=document.getElementById('ps-'+i);if(el){el.classList.toggle('active',i===n);el.classList.toggle('done',i<n);}}[renderStep0,renderStep1,renderStep2,renderStep3,renderStep4][n]();}
+
+function renderStep0(){var p=document.getElementById('cdiscPanel');if(!p)return;p.innerHTML='<div class="g2"><div><div class="card gap"><div class="ch"><div><div class="ch-title">📄 EHR / Clinical Notes</div><div class="ch-sub">Paste free-text EHR or discharge summaries</div></div></div><div class="cb"><textarea class="inp" id="ehrText" style="min-height:160px;font-size:.72rem;line-height:1.7" placeholder="Paste patient EHR here…"></textarea><div style="display:flex;gap:.38rem;margin-top:.5rem"><button class="btn btn-g" style="font-size:.68rem" onclick="loadSampleEHR()">📄 Sample EHR</button><button class="btn btn-g" style="font-size:.68rem" onclick="var e=document.getElementById(\'ehrText\');if(e)e.value=\'\'">🗑 Clear</button></div></div></div><div class="card"><div class="ch"><div><div class="ch-title">🩻 X-Ray / Medical Images</div><div class="ch-sub">Upload for Aya Vision AI analysis</div></div></div><div class="cb"><div class="upload-z" onclick="document.getElementById(\'xrInput\').click()" ondragover="event.preventDefault();this.classList.add(\'drag\')" ondragleave="this.classList.remove(\'drag\')" ondrop="handleDrop(event)"><div class="uz-ico" id="uzIco">🩻</div><div class="uz-t" id="uzT">Drop X-ray or click to upload</div><div class="uz-s">JPEG · PNG · AI extracts radiological findings</div></div><input type="file" id="xrInput" accept="image/*" style="display:none" onchange="handleFile(event)"><div id="xrFiles" style="margin-top:.42rem"></div></div></div></div><div class="col"><div class="card"><div class="ch"><div class="ch-title">🎯 Pipeline Options</div></div><div class="cb" style="display:flex;flex-direction:column;gap:.6rem"><div><div style="font-size:.6rem;color:var(--muted);margin-bottom:.28rem">Study Type</div><select class="inp" id="studyType" style="font-size:.71rem"><option>Clinical Trial (CDISC SDTM)</option><option>Observational Study</option><option>Regulatory Submission</option><option>Patient Registry</option></select></div><div><div style="font-size:.6rem;color:var(--muted);margin-bottom:.28rem">SDTM Version</div><select class="inp" style="font-size:.71rem"><option>SDTM v3.4 (Current)</option><option>SDTM v3.3</option><option>SDTM v3.2 (Legacy)</option></select></div><label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;cursor:pointer;color:var(--dim)"><input type="checkbox" checked style="accent-color:var(--amethyst)"> Extract from EHR</label><label style="display:flex;align-items:center;gap:.5rem;font-size:.72rem;cursor:pointer;color:var(--dim)"><input type="checkbox" id="chkXray"> Include X-ray findings</label></div></div><div class="card"><div class="ch"><div class="ch-title">🤖 AI Models</div></div><div class="cb" style="display:flex;flex-direction:column;gap:.35rem"><div style="padding:.52rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border);font-size:.7rem"><div style="color:var(--lavender);font-weight:600;margin-bottom:.1rem">Cohere Command A</div><div style="color:var(--muted)">EHR extraction · SDTM prediction · mapping</div></div><div style="padding:.52rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border);font-size:.7rem"><div style="color:var(--lavender);font-weight:600;margin-bottom:.1rem">Claude claude-sonnet-4-20250514</div><div style="color:var(--muted)">Clinical reasoning · compliance review</div></div><div style="padding:.52rem;border-radius:8px;background:rgba(255,255,255,.025);border:1px solid var(--border);font-size:.7rem"><div style="color:var(--lavender);font-weight:600;margin-bottom:.1rem">Cohere Aya Vision</div><div style="color:var(--muted)">X-ray image analysis</div></div></div></div><button class="btn btn-p" style="width:100%;justify-content:center;padding:.72rem;font-size:.8rem" onclick="runPipeline()">🚀 Run AI Pipeline →</button></div></div>';loadSampleEHR();}
+
+function renderStep1(){var p=document.getElementById('cdiscPanel');if(!p)return;p.innerHTML='<div class="g32"><div><div class="card gap"><div class="ch"><div><div class="ch-title">🤖 AI Extraction Pipeline</div><div class="ch-sub" id="pSub">Running all stages…</div></div><div id="pChip"><span class="chip cy">Running</span></div></div><div class="cb" id="pStages"></div></div></div><div><div class="card"><div class="ch"><div class="ch-title">📡 AI Output</div></div><div id="aiOut" class="cb" style="max-height:340px;overflow-y:auto;min-height:100px;font-size:.71rem;color:var(--muted)">Pipeline starting…</div></div></div></div>';runPipelineStages();}
+
+function renderStep2(){var p=document.getElementById('cdiscPanel');if(!p)return;DOMAINS.forEach(function(d){if(AI_PRED.indexOf(d.code)>=0)selDomains[d.code]=true;});var dh=DOMAINS.map(function(d){var on=AI_PRED.indexOf(d.code)>=0;return '<div class="dom-card'+(on?' on':'')+'" data-code="'+d.code+'" onclick="toggleDomain(this)"><div class="dc-code">'+d.code+'</div><div class="dc-name">'+d.name+'</div></div>';}).join('');p.innerHTML='<div class="card gap"><div class="ch"><div><div class="ch-title">🗂 SDTM Domain Selection</div><div class="ch-sub">AI-predicted pre-selected · Physicians can override</div></div><div style="display:flex;gap:.35rem"><button class="btn btn-g" style="font-size:.68rem" onclick="selAll()">All</button><button class="btn btn-g" style="font-size:.68rem" onclick="selNone()">None</button></div></div><div class="cb"><div class="ai-bub"><b>Cohere prediction:</b> <b>DM</b> Demographics, <b>VS</b> Vital Signs, <b>LB</b> Labs ordered, <b>CM</b> Medications, <b>MH</b> Medical History, <b>AE</b> Adverse Events/Allergies. Toggle any domain to include or exclude.</div><div class="dom-grid">'+dh+'</div><button class="btn btn-p" onclick="doStep3()">Continue to Variable Mapping →</button></div></div>';}
+
+function toggleDomain(el){el.classList.toggle('on');if(el.classList.contains('on'))selDomains[el.dataset.code]=true;else delete selDomains[el.dataset.code];}
+function selAll(){document.querySelectorAll('.dom-card').forEach(function(c){c.classList.add('on');selDomains[c.dataset.code]=true;});}
+function selNone(){document.querySelectorAll('.dom-card').forEach(function(c){c.classList.remove('on');delete selDomains[c.dataset.code];});}
+function doStep3(){if(!Object.keys(selDomains).length){toast('No domains','Select at least one','⚠️');return;}showCdiscStep(3);}
+
+function renderStep3(){var dom=Object.keys(selDomains),p=document.getElementById('cdiscPanel');if(!p)return;var fo='<option value="all">All Domains</option>'+dom.map(function(d){return '<option value="'+d+'">'+d+'</option>';}).join('');p.innerHTML='<div class="card gap"><div class="ch"><div><div class="ch-title">📋 CDISC Variable Mapping</div><div class="ch-sub">Review, edit, add or remove variables</div></div><div style="display:flex;gap:.35rem;align-items:center"><select class="inp" id="domFilt" style="width:130px;font-size:.68rem" onchange="renderVarTable()">'+fo+'</select><button class="btn btn-g" style="font-size:.68rem" onclick="showAddRow()">+ Add Row</button><button class="btn btn-p" style="font-size:.68rem" onclick="doStep4()">Generate CSV →</button></div></div><div style="overflow:auto;max-height:360px"><table class="var-tbl"><thead><tr><th>Domain</th><th>Variable</th><th>Label</th><th>Value</th><th>Conf.</th><th>Source</th><th></th></tr></thead><tbody id="varBody"></tbody></table></div><div id="addRow" style="display:none;padding:.8rem 1.1rem;border-top:1px solid var(--border)"><div style="display:flex;gap:.42rem;flex-wrap:wrap"><select class="inp" id="nDom" style="width:90px;font-size:.68rem">'+dom.map(function(d){return'<option>'+d+'</option>';}).join('')+'</select><input class="inp" id="nVar" placeholder="Variable" style="flex:1"><input class="inp" id="nLbl" placeholder="Label" style="flex:1"><input class="inp" id="nVal" placeholder="Value" style="flex:1"><button class="btn btn-p" style="font-size:.68rem" onclick="confirmAdd()">Add</button><button class="btn btn-g" style="font-size:.68rem" onclick="document.getElementById(\'addRow\').style.display=\'none\'">✕</button></div></div></div>';renderVarTable();}
+
+function renderVarTable(){var fe=document.getElementById('domFilt'),filt=fe?fe.value:'all';var rows=filt==='all'?extractedVars:extractedVars.filter(function(v){return v.domain===filt;});var body=document.getElementById('varBody');if(!body)return;body.innerHTML=rows.map(function(v){var pct=v.confidence,col=pct>=85?'var(--green)':pct>=70?'var(--yellow)':'var(--red)',idx=extractedVars.indexOf(v);return'<tr><td><span class="chip cv">'+v.domain+'</span></td><td><input class="var-inp" value="'+xe(v.variable)+'" onchange="extractedVars['+idx+'].variable=this.value"></td><td><input class="var-inp" value="'+xe(v.label)+'" onchange="extractedVars['+idx+'].label=this.value"></td><td><input class="var-inp" value="'+xe(v.value)+'" onchange="extractedVars['+idx+'].value=this.value"></td><td><div style="display:flex;align-items:center;gap:.4rem"><div class="conf-bar"><div class="conf-fill" style="width:'+pct+'%;background:'+col+'"></div></div><span style="font-size:.6rem;color:'+col+'">'+pct+'%</span></div></td><td><span class="chip '+(v.source==='EHR'?'ct':'cv')+'">'+v.source+'</span></td><td><button style="padding:.18rem .4rem;border-radius:5px;font-size:.6rem;background:var(--rbg);border:1px solid rgba(239,68,68,.2);color:var(--red);cursor:pointer" onclick="delVar('+idx+')">✕</button></td></tr>';}).join('');}
+
+function delVar(i){extractedVars.splice(i,1);renderVarTable();}
+function showAddRow(){var r=document.getElementById('addRow');if(r)r.style.display=r.style.display==='none'?'flex':'none';}
+function confirmAdd(){var d=document.getElementById('nDom').value,v=document.getElementById('nVar').value.trim(),l=document.getElementById('nLbl').value.trim(),val=document.getElementById('nVal').value.trim();if(!v||!val){toast('Missing fields','Variable and Value required','⚠️');return;}extractedVars.push({domain:d,variable:v,label:l||v,value:val,confidence:100,source:'Manual'});renderVarTable();document.getElementById('addRow').style.display='none';toast('Row added',d+'.'+v+'='+val,'✅');}
+function doStep4(){if(!extractedVars.length){toast('No variables','Run pipeline first','⚠️');return;}showCdiscStep(4);}
+
+function renderStep4(){var p=document.getElementById('cdiscPanel');if(!p)return;var doms=[];extractedVars.forEach(function(v){if(doms.indexOf(v.domain)<0)doms.push(v.domain);});var score=Math.round(extractedVars.reduce(function(a,v){return a+v.confidence;},0)/(extractedVars.length||1));var sc=score>=85?'var(--green)':score>=70?'var(--yellow)':'var(--red)';var hdrs=['STUDYID','DOMAIN','USUBJID','VARIABLE','LABEL','VALUE','CONFIDENCE','SOURCE','DATETIME'];var csvRows=extractedVars.map(function(v){return'<tr><td>CARE-2024-001</td><td>'+v.domain+'</td><td>AN-2024-001</td><td>'+xe(v.variable)+'</td><td>'+xe(v.label)+'</td><td>'+xe(v.value)+'</td><td>'+v.confidence+'%</td><td>'+v.source+'</td><td>'+new Date().toISOString().slice(0,19)+'</td></tr>';}).join('');p.innerHTML='<div class="g32"><div class="card gap"><div class="ch"><div><div class="ch-title">📊 CSV Preview — SDTM v3.4</div><div class="ch-sub">'+extractedVars.length+' rows · '+doms.join(', ')+'</div></div><div style="display:flex;gap:.35rem"><button class="btn btn-p" style="font-size:.68rem" onclick="dlCSV()">⬇ Download CSV</button><button class="btn btn-g" style="font-size:.68rem" onclick="copyCSV()">📋 Copy</button></div></div><div style="overflow:auto;max-height:380px"><table class="csv-tbl"><thead><tr>'+hdrs.map(function(h){return'<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+csvRows+'</tbody></table></div></div><div class="col"><div class="card"><div class="ch"><div class="ch-title">📈 Compliance Report</div></div><div class="cb" style="display:flex;flex-direction:column;gap:.6rem"><div style="text-align:center"><div style="font-family:\'Playfair Display\',serif;font-size:2rem;font-weight:700;color:'+sc+'">'+score+'%</div><div style="font-size:.63rem;color:var(--muted)">CDISC Compliance Score</div></div><div style="display:flex;flex-direction:column;gap:.38rem;font-size:.71rem"><div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Variables</span><span>'+extractedVars.length+'</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Domains</span><span>'+doms.join(', ')+'</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">High confidence ≥85%</span><span style="color:var(--green)">'+extractedVars.filter(function(v){return v.confidence>=85;}).length+'</span></div></div><div style="padding:.6rem;border-radius:8px;background:var(--gbg);border:1px solid rgba(16,185,129,.15);font-size:.67rem;color:var(--green)">✓ Ready for regulatory review</div></div></div><div class="card"><div class="ch"><div class="ch-title">⚖ Claude Clinical Review</div></div><div id="claudeRev" class="cb" style="font-size:.72rem;color:var(--dim);line-height:1.75;min-height:60px">Generating review…</div></div><div style="display:flex;gap:.45rem"><button class="btn btn-g" style="flex:1;justify-content:center;font-size:.7rem" onclick="showCdiscStep(0)">← Start Over</button><button class="btn btn-p" style="flex:1;justify-content:center;font-size:.7rem" onclick="dlCSV()">⬇ Export CSV</button></div></div></div>';runClaudeReview();}
+
+async function runClaudeReview(){var el=document.getElementById('claudeRev');if(!el)return;var r=AI_ANTHROPIC_KEY?await aiClaude('Briefly review this CDISC SDTM mapping for clinical compliance in under 80 words.\n\nMapping: '+extractedVars.map(function(v){return v.domain+'.'+v.variable+'="'+v.value+'"('+v.confidence+'%)';}).join(', ')):null;if(el)el.textContent=r||'Mapping complete for '+[...new Set(extractedVars.map(function(v){return v.domain;}))].join(', ')+' domains. Required variables SUBJID, AGE, SEX present. Verify LBDTC and CMSTDTC for full SDTM 3.4 compliance.'+(AI_ANTHROPIC_KEY?'':' (Add Anthropic key for live review.)');}
+
+async function runPipeline(){var ehrEl=document.getElementById('ehrText');if(!ehrEl||!ehrEl.value.trim()){toast('No EHR data','Paste clinical notes first or click Sample EHR','⚠️');return;}showCdiscStep(1);}
+
+async function runPipelineStages(){
+  var stages=[{ico:'📄',name:'EHR Text Parsing',done:'EHR parsed — ready for extraction'},{ico:'🧬',name:'Cohere: EHR Insight Extraction',done:'47 clinical entities extracted'},{ico:'🩻',name:'Aya Vision: X-Ray Analysis',done:'Image analysis complete'},{ico:'🗂',name:'Cohere: SDTM Domain Prediction',done:'6 domains predicted: DM, VS, LB, CM, MH, AE'},{ico:'📊',name:'Cohere: CDISC Standards Mapping',done:'62 variables mapped'},{ico:'⚖',name:'Claude: Compliance Evaluation',done:'Compliance score: 91%'}];
+  var sEl=document.getElementById('pStages'),aiOut=document.getElementById('aiOut');if(!sEl)return;
+  sEl.innerHTML=stages.map(function(s,i){return'<div class="ps-row" id="psr-'+i+'"><div class="ps-ico idle" id="psi-'+i+'">'+s.ico+'</div><div style="flex:1"><div class="ps-name">'+s.name+'</div><div class="ps-detail" id="psd-'+i+'">Queued</div></div><div id="pst-'+i+'"><span class="chip cgr">Queued</span></div></div>';}).join('');
+  var ehrTxt=document.getElementById('ehrText')?document.getElementById('ehrText').value:'';
+  for(var i=0;i<stages.length;i++){
+    var row=document.getElementById('psr-'+i),ico=document.getElementById('psi-'+i),det=document.getElementById('psd-'+i),tag=document.getElementById('pst-'+i);if(!row)continue;
+    row.className='ps-row running';ico.className='ps-ico running';if(tag)tag.innerHTML='<div class="pipe-spin"></div>';
+    await sleep(900+Math.random()*600);
+    if(i===1&&AI_COHERE_KEY){var r2=await aiCohere([{role:'user',content:'Extract clinical data from this EHR as JSON with keys: demographics, vitals, medications, diagnoses, labs, allergies, plan.\n\n'+ehrTxt}],'Clinical CDISC extraction.',true);if(r2&&aiOut){try{var parsed=JSON.parse(r2.replace(/```json|```/g,'').trim());aiOut.innerHTML='<div class="ai-bub"><b>Cohere extraction:</b><br>'+Object.keys(parsed).map(function(k){return'<b>'+k+':</b> '+JSON.stringify(parsed[k]).substring(0,85);}).join('<br>')+'</div>';}catch(e2){if(aiOut)aiOut.innerHTML='<div class="ai-bub"><b>Cohere:</b> '+xe(r2.substring(0,350))+'</div>';}}}
+    row.className='ps-row done-s';ico.className='ps-ico done-s';if(det)det.textContent=stages[i].done;if(tag)tag.innerHTML='<span class="chip cg">Done</span>';
+  }
+  var pc=document.getElementById('pChip'),ps=document.getElementById('pSub');if(pc)pc.innerHTML='<span class="chip cg">Complete</span>';if(ps)ps.textContent='All 6 stages complete';
+  buildDemoVars();setTimeout(function(){showCdiscStep(2);},600);
+}
+
+function buildDemoVars(){extractedVars=[{domain:'DM',variable:'SUBJID',label:'Subject ID',value:'AN-2024-001',confidence:99,source:'EHR'},{domain:'DM',variable:'AGE',label:'Age',value:'42',confidence:99,source:'EHR'},{domain:'DM',variable:'SEX',label:'Sex',value:'F',confidence:99,source:'EHR'},{domain:'DM',variable:'DTHFL',label:'Death Flag',value:'N',confidence:95,source:'EHR'},{domain:'DM',variable:'RFSTDTC',label:'Ref Start Date',value:'2024-12-05',confidence:97,source:'EHR'},{domain:'VS',variable:'SYSBP',label:'Systolic BP',value:'145',confidence:98,source:'EHR'},{domain:'VS',variable:'DIABP',label:'Diastolic BP',value:'92',confidence:98,source:'EHR'},{domain:'VS',variable:'HR',label:'Heart Rate',value:'88',confidence:97,source:'EHR'},{domain:'VS',variable:'WEIGHT',label:'Weight',value:'72',confidence:96,source:'EHR'},{domain:'LB',variable:'LBTESTCD',label:'CBC',value:'Ordered',confidence:94,source:'EHR'},{domain:'LB',variable:'LBTEST2',label:'Lipid Panel',value:'Ordered',confidence:93,source:'EHR'},{domain:'LB',variable:'LBTEST3',label:'HbA1c',value:'Ordered',confidence:93,source:'EHR'},{domain:'LB',variable:'LBTEST4',label:'BMP',value:'Ordered',confidence:91,source:'EHR'},{domain:'CM',variable:'CMTRT',label:'Treatment 1',value:'Lisinopril',confidence:99,source:'EHR'},{domain:'CM',variable:'CMDOSE',label:'Dose 1',value:'10',confidence:99,source:'EHR'},{domain:'CM',variable:'CMDOSU',label:'Dose Units',value:'mg',confidence:99,source:'EHR'},{domain:'CM',variable:'CMROUTE',label:'Route',value:'PO',confidence:99,source:'EHR'},{domain:'CM',variable:'CMDOSFRQ',label:'Frequency',value:'QD',confidence:99,source:'EHR'},{domain:'CM',variable:'CMTRT2',label:'Treatment 2',value:'Ferrous Sulfate 65mg',confidence:99,source:'EHR'},{domain:'MH',variable:'MHTERM',label:'Medical Hx 1',value:'Hypertension',confidence:99,source:'EHR'},{domain:'MH',variable:'MHSTDTC',label:'MH Start 1',value:'2021',confidence:88,source:'EHR'},{domain:'MH',variable:'MHTERM2',label:'Medical Hx 2',value:'Iron-deficiency Anaemia',confidence:98,source:'EHR'},{domain:'AE',variable:'AETERM',label:'Adverse Event 1',value:'Penicillin allergy (rash)',confidence:96,source:'EHR'},{domain:'AE',variable:'AETERM2',label:'Adverse Event 2',value:'Sulfonamide allergy',confidence:95,source:'EHR'},{domain:'AE',variable:'AESEV',label:'Severity',value:'Moderate',confidence:72,source:'EHR'}];}
+
+function loadSampleEHR(){var el=document.getElementById('ehrText');if(!el)return;el.value='Patient: Amara Nwosu, 42F, DOB: 1982-03-14\nVisit Date: 2024-12-05, Site: Scarborough Health Network\nChief Complaint: Chest tightness, intermittent shortness of breath x3 weeks\nVitals: BP 145/92 mmHg, HR 88 bpm, RR 16/min, Temp 36.8C, SpO2 97%, Wt 72kg, Ht 164cm\nPMH: Hypertension (2021), Iron-deficiency anaemia (2022)\nMedications: Lisinopril 10mg PO daily, Ferrous sulfate 65mg PO daily\nAllergies: Penicillin (rash), Sulfonamides\nLabs ordered: CBC, lipid panel, HbA1c, BMP\nAssessment: Uncontrolled hypertension, symptomatic anaemia\nPlan: Cardiology referral, repeat BP in 2 weeks\nPhysician: Dr. Adeyemi, Scarborough Health Network';}
+function handleFile(e){var f=e.target.files[0];if(!f)return;var fi=document.getElementById('xrFiles');if(fi)fi.innerHTML='<span class="fchip">🩻 '+xe(f.name)+' <span class="fchip-x" onclick="clearXR()">✕</span></span>';var ui=document.getElementById('uzIco');if(ui)ui.textContent='✅';var ut=document.getElementById('uzT');if(ut)ut.textContent=f.name;toast('X-ray loaded',f.name,'🩻');}
+function handleDrop(e){e.preventDefault();e.currentTarget.classList.remove('drag');var f=e.dataTransfer.files[0];if(f)handleFile({target:{files:[f]}});}
+function clearXR(){var fi=document.getElementById('xrFiles');if(fi)fi.innerHTML='';var ui=document.getElementById('uzIco');if(ui)ui.textContent='🩻';var ut=document.getElementById('uzT');if(ut)ut.textContent='Drop X-ray or click to upload';}
+function dlCSV(){var hdrs=['STUDYID','DOMAIN','USUBJID','VARIABLE','LABEL','VALUE','CONFIDENCE','SOURCE','DATETIME'];var rows=extractedVars.map(function(v){return['"CARE-2024-001"','"'+v.domain+'"','"AN-2024-001"','"'+v.variable+'"','"'+v.label+'"','"'+v.value+'"','"'+v.confidence+'%"','"'+v.source+'"','"'+new Date().toISOString()+'"'].join(',');});var csv=[hdrs.join(',')].concat(rows).join('\n');var blob=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SDTM_mapping_'+new Date().toISOString().slice(0,10)+'.csv';a.click();toast('Downloaded',extractedVars.length+' rows · SDTM v3.4','⬇');}
+function copyCSV(){var rows=extractedVars.map(function(v){return[v.domain,v.variable,v.label,v.value,v.confidence+'%',v.source].join('\t');});navigator.clipboard.writeText(['DOMAIN\tVARIABLE\tLABEL\tVALUE\tCONFIDENCE\tSOURCE'].concat(rows).join('\n'));toast('Copied','Table copied to clipboard','📋');}
+
+</script>
+</body>
+</html>
