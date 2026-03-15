@@ -129,7 +129,10 @@ export const NAV_PAT = [
 
 export const NAV_PROV = [
   { section:'Provider', items:[
-    {id:'prov-overview',icon:'🏥',label:'Dashboard'},
+    {id:'prov-appointments', icon:'📅', label:'Appointments'},
+    {id:'prov-schedule',     icon:'🗓️', label:'Schedule'},
+    {id:'prov-patients',     icon:'👥', label:'Patients'},
+    {id:'prov-analytics',    icon:'📊', label:'Analytics'},
   ]},
   { section:'Clinical AI', items:[
     {id:'ai-translation',icon:'🌐',label:'AI Translation'},

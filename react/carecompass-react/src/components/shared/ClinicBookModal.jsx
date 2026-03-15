@@ -1,7 +1,7 @@
 // src/components/shared/ClinicBookModal.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../../hooks/useApp';
-import { apiPost } from '../../lib/api';
+import { apiPost, apiGet } from '../../lib/api';
 
 // Convert slot date like "Mon Dec 16" to ISO "2026-12-16"
 function parseSlotDate(slotDate) {
@@ -55,6 +55,35 @@ export default function ClinicBookModal({ clinic }) {
   const [patientName, setPatientName] = useState('Amara Nwosu');
   const [phone, setPhone] = useState('');
   const [apptType, setApptType] = useState('Initial Consultation');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [apiSlots, setApiSlots] = useState(null);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+
+  const isRealProvider = clinic?.id && String(clinic.id).includes('-');
+
+  useEffect(() => {
+    if (isRealProvider && selectedDate) {
+      setSlotsLoading(true);
+      apiGet(`/schedules/${clinic.id}/slots?date=${selectedDate}`)
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            setApiSlots(data.map(s => {
+              const [h, m] = s.time.split(':');
+              const hr = parseInt(h);
+              const ampm = hr >= 12 ? 'PM' : 'AM';
+              const display = `${hr > 12 ? hr - 12 : hr || 12}:${m} ${ampm}`;
+              const dt = new Date(selectedDate + 'T12:00:00');
+              const dayStr = dt.toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' });
+              return { d: dayStr, t: display, rawTime: s.time, rawDate: selectedDate };
+            }));
+          } else {
+            setApiSlots([]);
+          }
+        })
+        .catch(() => setApiSlots(null))
+        .finally(() => setSlotsLoading(false));
+    }
+  }, [isRealProvider, selectedDate, clinic?.id]);
 
   if (!clinic) return null;
 
@@ -68,8 +97,8 @@ export default function ClinicBookModal({ clinic }) {
 
     setLoading(true);
     try {
-      const isoDate = parseSlotDate(selSlot.d);
-      const isoTime = parseSlotTime(selSlot.t);
+      const isoDate = selSlot.rawDate || parseSlotDate(selSlot.d);
+      const isoTime = selSlot.rawTime || parseSlotTime(selSlot.t);
 
       const appointmentData = {
         type: apptType,
@@ -78,12 +107,12 @@ export default function ClinicBookModal({ clinic }) {
         provider_id: (clinic.id && String(clinic.id).includes('-')) ? String(clinic.id) : null,
         provider_name: clinic.name || clinic.clinic_name || '',
         notes: `Booked via clinic finder. Specialty: ${clinic.spec}. Phone: ${phone || 'N/A'}`,
-        status: 'confirmed',
+        status: 'pending',
       };
 
       await apiPost('/appointments', appointmentData);
       setDone(true);
-      toast('Appointment confirmed!', `${clinic.name} · ${lang} reminder scheduled`, '');
+      toast('Appointment requested!', `${clinic.name} · Awaiting provider confirmation`, '');
 
       window.dispatchEvent(new CustomEvent('appointments:refresh'));
     } catch (error) {
@@ -97,8 +126,8 @@ export default function ClinicBookModal({ clinic }) {
     <div className="modal-box">
       <div style={{ textAlign:'center', padding:'2.1rem 1.4rem' }}>
         <div style={{ fontSize:'2.8rem', marginBottom:'.85rem', animation:'pop .5s cubic-bezier(.175,.885,.32,1.275)' }}>✅</div>
-        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.25rem', fontWeight:700, marginBottom:'.38rem' }}>Appointment Booked!</div>
-        <div style={{ fontSize:'.78rem', color:'var(--muted)', lineHeight:1.7, marginBottom:'1.2rem' }}>Fatima will send a confirmation and reminder in {lang}.</div>
+        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.25rem', fontWeight:700, marginBottom:'.38rem' }}>Appointment Requested!</div>
+        <div style={{ fontSize:'.78rem', color:'var(--muted)', lineHeight:1.7, marginBottom:'1.2rem' }}>Your provider will confirm this within 24 hours. Reminder in {lang} will be sent once confirmed.</div>
         <div style={{ background:'rgba(16,185,129,.09)', border:'1px solid rgba(16,185,129,.2)', borderRadius:10, padding:'.85rem', textAlign:'left', marginBottom:'1.2rem' }}>
           {[['Clinic', clinic.name],['Date', selSlot ? parseSlotDate(selSlot.d) : 'Next available'],['Time', selSlot ? selSlot.t : ''],['Language', lang],['Reference', ref]].map(([k,v]) => (
             <div key={k} style={{ display:'flex', justifyContent:'space-between', fontSize:'.73rem', marginBottom:'.24rem' }}>
@@ -120,9 +149,23 @@ export default function ClinicBookModal({ clinic }) {
         <button className="mclose" onClick={closeModal}>✕</button>
       </div>
       <div className="mbody">
+        {isRealProvider && (
+          <div className="mfield" style={{ marginBottom: '.6rem' }}>
+            <label className="mlbl">Select Date</label>
+            <input type="date" value={selectedDate} onChange={e => { setSelectedDate(e.target.value); setSelSlot(null); setApiSlots(null); }}
+              style={{ background:'rgba(255,255,255,.06)', border:'1px solid var(--border)', borderRadius:8, padding:'.55rem .75rem', color:'var(--white)', colorScheme:'dark', fontFamily:"'DM Sans',sans-serif", fontSize:'.75rem', width:'100%' }} />
+          </div>
+        )}
         <span className="msec-lbl">Choose a Time Slot</span>
+        {slotsLoading ? (
+          <div style={{ padding:'1rem', textAlign:'center', color:'var(--muted)', fontSize:'.75rem' }}>Loading available slots...</div>
+        ) : (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'.4rem', marginBottom:'.8rem' }}>
-          {clinic.slots.map((s, i) => (
+          {(isRealProvider && apiSlots !== null ? apiSlots : clinic.slots || []).length === 0 ? (
+            <div style={{ gridColumn:'1/-1', padding:'1rem', textAlign:'center', color:'var(--muted)', fontSize:'.72rem' }}>
+              {isRealProvider ? 'No available slots for this date. Try another date.' : 'No slots available.'}
+            </div>
+          ) : (isRealProvider && apiSlots !== null ? apiSlots : clinic.slots || []).map((s, i) => (
             <div key={i} onClick={() => setSelSlot(s)} style={{
               padding:'.55rem .35rem', borderRadius:8, textAlign:'center', fontSize:'.67rem', fontWeight:500, cursor:'pointer',
               background: selSlot===s ? 'rgba(109,40,217,.22)' : 'rgba(255,255,255,.03)',
@@ -133,6 +176,7 @@ export default function ClinicBookModal({ clinic }) {
             </div>
           ))}
         </div>
+        )}
         <span className="msec-lbl">Your Details</span>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'.65rem' }}>
           <div className="mfield">

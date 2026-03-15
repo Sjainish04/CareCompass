@@ -10,11 +10,11 @@ const PATIENT_VIEWS = new Set([
   'p-navigator','p-records','find-care','ai-translation','ai-recorder','ai-cdisc','settings'
 ]);
 const PROVIDER_VIEWS = new Set([
-  'prov-overview','ai-translation','ai-recorder','ai-cdisc','settings'
+  'prov-appointments','prov-schedule','prov-patients','prov-analytics','ai-translation','ai-recorder','ai-cdisc','settings'
 ]);
 
 function defaultViewForRole(r) {
-  return r === 'provider' ? 'prov-overview' : 'p-overview';
+  return r === 'provider' ? 'prov-appointments' : 'p-overview';
 }
 
 function allowedForRole(r) {
@@ -32,25 +32,35 @@ export function AppProvider({ children }) {
   const toastId = useRef(0);
 
   // Live badge counts (fetched from API)
-  const [badgeCounts, setBadgeCounts] = useState({ appointments: 0, referrals: 0 });
+  const [badgeCounts, setBadgeCounts] = useState({ appointments: 0, referrals: 0, providerPending: 0 });
 
   const refreshBadgeCounts = useCallback(() => {
-    apiGet('/appointments')
-      .then(data => {
-        if (Array.isArray(data)) {
-          const upcoming = data.filter(a => a.status !== 'completed' && a.status !== 'cancelled');
-          setBadgeCounts(prev => ({ ...prev, appointments: upcoming.length }));
-        }
-      })
-      .catch(() => {});
-    apiGet('/referrals')
-      .then(data => {
-        const pending = data?.pendingCount ?? data?.referrals?.filter(r => r.chip === 'y')?.length ?? 0;
-        const active = data?.activeCount ?? data?.referrals?.length ?? 0;
-        setBadgeCounts(prev => ({ ...prev, referrals: active }));
-      })
-      .catch(() => {});
-  }, []);
+    if (role === 'provider') {
+      apiGet('/appointments/provider/mine')
+        .then(data => {
+          if (Array.isArray(data)) {
+            const pendingCount = data.filter(a => a.status === 'pending').length;
+            setBadgeCounts(prev => ({ ...prev, providerPending: pendingCount }));
+          }
+        })
+        .catch(() => {});
+    } else {
+      apiGet('/appointments')
+        .then(data => {
+          if (Array.isArray(data)) {
+            const upcoming = data.filter(a => a.status === 'pending' || a.status === 'confirmed');
+            setBadgeCounts(prev => ({ ...prev, appointments: upcoming.length }));
+          }
+        })
+        .catch(() => {});
+      apiGet('/referrals')
+        .then(data => {
+          const active = data?.activeCount ?? data?.referrals?.length ?? 0;
+          setBadgeCounts(prev => ({ ...prev, referrals: active }));
+        })
+        .catch(() => {});
+    }
+  }, [role]);
 
   // Fetch badge counts on mount and on appointment changes
   useEffect(() => {

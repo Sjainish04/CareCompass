@@ -20,6 +20,7 @@ export default function BookApptModal({ clinic }) {
   const [booked, setBooked] = useState(null);
   const [providers, setProviders] = useState([]);
   const [providerSearch, setProviderSearch] = useState('');
+  const [showProviderList, setShowProviderList] = useState(false);
   const [formData, setFormData] = useState({
     type: 'Specialist Visit',
     language: 'Igbo',
@@ -30,11 +31,31 @@ export default function BookApptModal({ clinic }) {
     notes: '',
   });
 
+  const [availableSlots, setAvailableSlots] = useState(null);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+
+  const isRealProvider = formData.provider_id && formData.provider_id.includes('-');
+
   useEffect(() => {
     apiGet('/providers')
       .then(data => { if (Array.isArray(data)) setProviders(data); })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (isRealProvider && formData.preferredDate) {
+      setSlotsLoading(true);
+      apiGet(`/schedules/${formData.provider_id}/slots?date=${formData.preferredDate}`)
+        .then(data => {
+          if (Array.isArray(data)) setAvailableSlots(data);
+          else setAvailableSlots([]);
+        })
+        .catch(() => setAvailableSlots(null))
+        .finally(() => setSlotsLoading(false));
+    } else {
+      setAvailableSlots(null);
+    }
+  }, [isRealProvider, formData.provider_id, formData.preferredDate]);
 
   const set = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
@@ -52,7 +73,7 @@ export default function BookApptModal({ clinic }) {
         (p.clinic_name || p.name || '').toLowerCase().includes(providerSearch.toLowerCase()) ||
         (p.specialty || p.spec || '').toLowerCase().includes(providerSearch.toLowerCase())
       )
-    : [];
+    : providers;
 
   async function handleSubmit() {
     if (!formData.preferredDate || !formData.preferredTime) {
@@ -68,7 +89,7 @@ export default function BookApptModal({ clinic }) {
         provider_id: (formData.provider_id && formData.provider_id.includes('-')) ? formData.provider_id : null,
         provider_name: formData.provider_name || 'To be assigned',
         notes: formData.notes,
-        status: 'confirmed',
+        status: 'pending',
       });
       setBooked({ ...res, ...formData });
       window.dispatchEvent(new CustomEvent('appointments:refresh'));
@@ -91,8 +112,8 @@ export default function BookApptModal({ clinic }) {
       <div className="modal-box" style={{ maxWidth: 420 }}>
         <div style={{ textAlign: 'center', padding: '2rem 1.5rem' }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(16,185,129,.15)', border: '2px solid var(--green)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', marginBottom: '.85rem' }}>✓</div>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.2rem', fontWeight: 700, marginBottom: '.3rem' }}>Appointment Booked!</div>
-          <div style={{ fontSize: '.72rem', color: 'var(--muted)', marginBottom: '1.2rem' }}>Your navigator will send a confirmation reminder</div>
+          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.2rem', fontWeight: 700, marginBottom: '.3rem' }}>Appointment Requested!</div>
+          <div style={{ fontSize: '.72rem', color: 'var(--muted)', marginBottom: '1.2rem' }}>Your provider will confirm this within 24 hours</div>
 
           <div style={{ background: 'rgba(16,185,129,.06)', border: '1px solid rgba(16,185,129,.15)', borderRadius: 12, padding: '1rem', textAlign: 'left', marginBottom: '1.2rem' }}>
             {[
@@ -160,11 +181,13 @@ export default function BookApptModal({ clinic }) {
             <>
               <input
                 className="minput"
-                placeholder="Search providers..."
+                placeholder="Search or click to see all providers..."
                 value={providerSearch}
                 onChange={e => setProviderSearch(e.target.value)}
+                onFocus={() => setShowProviderList(true)}
+                onBlur={() => setTimeout(() => setShowProviderList(false), 200)}
               />
-              {filteredProviders.length > 0 && (
+              {showProviderList && filteredProviders.length > 0 && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, maxHeight: 160, overflowY: 'auto', marginTop: 2 }}>
                   {filteredProviders.slice(0, 8).map(p => (
                     <div key={p.id} onClick={() => selectProvider(p)} style={{ padding: '.45rem .7rem', cursor: 'pointer', fontSize: '.73rem', borderBottom: '1px solid var(--border)', transition: 'background .15s' }}
@@ -184,11 +207,29 @@ export default function BookApptModal({ clinic }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.6rem', marginBottom: '.15rem' }}>
           <div className="mfield">
             <label className="mlbl">Date</label>
-            <input type="date" value={formData.preferredDate} onChange={e => set('preferredDate', e.target.value)} style={darkInput} />
+            <input type="date" value={formData.preferredDate} onChange={e => { set('preferredDate', e.target.value); set('preferredTime', ''); }} style={darkInput} />
           </div>
           <div className="mfield">
             <label className="mlbl">Time</label>
-            <input type="time" value={formData.preferredTime} onChange={e => set('preferredTime', e.target.value)} style={darkInput} />
+            {isRealProvider && availableSlots !== null ? (
+              slotsLoading ? (
+                <div style={{ ...darkInput, display: 'flex', alignItems: 'center', color: 'var(--muted)' }}>Loading slots...</div>
+              ) : availableSlots.length === 0 ? (
+                <div style={{ ...darkInput, display: 'flex', alignItems: 'center', color: 'var(--muted)', fontSize: '.68rem' }}>No slots available</div>
+              ) : (
+                <select className="minput" value={formData.preferredTime} onChange={e => set('preferredTime', e.target.value)} style={darkInput}>
+                  <option value="">Select a time</option>
+                  {availableSlots.map(s => {
+                    const [h, m] = s.time.split(':');
+                    const hr = parseInt(h);
+                    const display = `${hr > 12 ? hr - 12 : hr || 12}:${m} ${hr >= 12 ? 'PM' : 'AM'}`;
+                    return <option key={s.time} value={s.time}>{display}</option>;
+                  })}
+                </select>
+              )
+            ) : (
+              <input type="time" value={formData.preferredTime} onChange={e => set('preferredTime', e.target.value)} style={darkInput} />
+            )}
           </div>
         </div>
 

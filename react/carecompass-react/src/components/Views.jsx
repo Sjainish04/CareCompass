@@ -225,7 +225,8 @@ export function PatientAppointments() {
     } catch { toast('Error', 'Could not reschedule', '⚠️'); }
   }
 
-  const upcoming = (appointments || []).filter(a => a.status !== 'completed');
+  const upcoming = (appointments || []).filter(a => a.status !== 'completed' && a.status !== 'cancelled');
+  const declined = (appointments || []).filter(a => a.status === 'cancelled');
   const past = (appointments || []).filter(a => a.status === 'completed');
   const loading = appointments === null;
 
@@ -267,8 +268,8 @@ export function PatientAppointments() {
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:'.5rem', marginBottom:'.25rem' }}>
                           <span style={{ fontSize:'.82rem', fontWeight:600 }}>{a.type || 'Appointment'}</span>
-                          <span className={`chip chip-${a.status === 'confirmed' ? 'g' : a.status === 'cancelled' ? 'r' : 'v'}`} style={{ fontSize:'.52rem' }}>
-                            {a.status === 'confirmed' ? '✓ Confirmed' : a.status === 'cancelled' ? 'Cancelled' : a.status}
+                          <span className={`chip chip-${a.status === 'confirmed' ? 'g' : a.status === 'cancelled' ? 'r' : a.status === 'pending' ? 'y' : a.status === 'completed' ? 'gr' : 'v'}`} style={{ fontSize:'.52rem' }}>
+                            {a.status === 'confirmed' ? '✓ Confirmed' : a.status === 'cancelled' ? '✕ Declined' : a.status === 'pending' ? '⏳ Awaiting Approval' : a.status === 'completed' ? '✓ Completed' : a.status}
                           </span>
                         </div>
                         {a.provider_name && <div style={{ fontSize:'.74rem', color:'var(--dim)', marginBottom:'.15rem' }}>🏥 {a.provider_name}</div>}
@@ -277,14 +278,25 @@ export function PatientAppointments() {
                           <span>📆 {dt.full}</span>
                         </div>
                         {a.notes && <div style={{ fontSize:'.66rem', color:'var(--muted)', marginTop:'.25rem', fontStyle:'italic' }}>📝 {a.notes}</div>}
+                        {a.status === 'cancelled' && a.rejection_reason && (
+                          <div style={{ fontSize:'.66rem', color:'var(--red)', marginTop:'.25rem', padding:'.35rem .5rem', background:'rgba(239,68,68,.06)', border:'1px solid rgba(239,68,68,.12)', borderRadius:6 }}>
+                            Reason: {a.rejection_reason}
+                          </div>
+                        )}
                       </div>
                       {/* Actions */}
                       <div style={{ display:'flex', flexDirection:'column', gap:'.3rem', flexShrink:0 }}>
-                        <button className="btn btn-g" style={{ fontSize:'.65rem', padding:'.28rem .6rem' }} onClick={()=>{ setRescheduleId(isRescheduling ? null : a.id); setRescheduleData({ date: a.date || '', time: a.time || '' }); }}>
-                          {isRescheduling ? '✕ Close' : '📅 Reschedule'}
-                        </button>
-                        <button className="btn btn-g" style={{ fontSize:'.65rem', padding:'.28rem .6rem' }} onClick={()=>toast('Reminder sent','SMS reminder scheduled','📱')}>📱 Remind</button>
-                        <button onClick={()=>cancelAppt(a.id)} style={{ fontSize:'.65rem', padding:'.28rem .6rem', borderRadius:6, border:'1px solid rgba(239,68,68,.2)', background:'rgba(239,68,68,.08)', color:'var(--red)', cursor:'pointer', fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>🗑 Cancel</button>
+                        {a.status === 'cancelled' ? (
+                          <button className="btn btn-p" style={{ fontSize:'.65rem', padding:'.28rem .6rem' }} onClick={()=>openModal('bookAppt')}>🔄 Rebook</button>
+                        ) : (
+                          <>
+                            <button className="btn btn-g" style={{ fontSize:'.65rem', padding:'.28rem .6rem' }} onClick={()=>{ setRescheduleId(isRescheduling ? null : a.id); setRescheduleData({ date: a.date || '', time: a.time || '' }); }}>
+                              {isRescheduling ? '✕ Close' : '📅 Reschedule'}
+                            </button>
+                            <button className="btn btn-g" style={{ fontSize:'.65rem', padding:'.28rem .6rem' }} onClick={()=>toast('Reminder sent','SMS reminder scheduled','📱')}>📱 Remind</button>
+                            <button onClick={()=>cancelAppt(a.id)} style={{ fontSize:'.65rem', padding:'.28rem .6rem', borderRadius:6, border:'1px solid rgba(239,68,68,.2)', background:'rgba(239,68,68,.08)', color:'var(--red)', cursor:'pointer', fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>🗑 Cancel</button>
+                          </>
+                        )}
                       </div>
                     </div>
                     {/* Reschedule form */}
@@ -309,6 +321,33 @@ export function PatientAppointments() {
               })
             )}
           </div>
+
+          {/* Declined appointments */}
+          {declined.length > 0 && (<>
+            <div className="ch" style={{ borderTop:'1px solid var(--border)' }}><div className="ch-title" style={{ color:'var(--red)' }}>✕ Declined Appointments</div></div>
+            <div className="cb">
+              {declined.map((a, i) => {
+                const dt = formatDate(a.date);
+                return (
+                  <div key={a.id} style={{ display:'flex', alignItems:'center', gap:'.85rem', padding:'.7rem 0', borderBottom: i < declined.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                    <div style={{ width:38, textAlign:'center', flexShrink:0 }}>
+                      <div style={{ fontFamily:"'Playfair Display',serif", fontSize:'1.1rem', fontWeight:700 }}>{dt.day}</div>
+                      <div style={{ fontSize:'.55rem', color:'var(--muted)', textTransform:'uppercase' }}>{dt.mo}</div>
+                    </div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:'.76rem', fontWeight:500 }}>{a.type}{a.provider_name ? ` · ${a.provider_name}` : ''}</div>
+                      <div style={{ fontSize:'.64rem', color:'var(--muted)' }}>{formatTime(a.time)} · {dt.full}</div>
+                      {a.rejection_reason && <div style={{ fontSize:'.64rem', color:'var(--red)', marginTop:'.2rem' }}>Reason: {a.rejection_reason}</div>}
+                    </div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'.25rem', alignItems:'flex-end', flexShrink:0 }}>
+                      <span className="chip chip-r">Declined</span>
+                      <button className="btn btn-p" style={{ fontSize:'.62rem', padding:'.22rem .5rem' }} onClick={()=>openModal('bookAppt')}>🔄 Rebook</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>)}
 
           {/* Past appointments */}
           {past.length > 0 && (<>

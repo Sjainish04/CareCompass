@@ -42,7 +42,9 @@ export default function PatientOverview() {
     return () => window.removeEventListener('appointments:refresh', h);
   }, []);
 
-  const upcoming = appointments.filter(a => a.status !== 'completed' && a.status !== 'cancelled');
+  const upcoming = appointments.filter(a => a.status === 'confirmed' || a.status === 'pending');
+  const pendingAppts = appointments.filter(a => a.status === 'pending');
+  const confirmedAppts = appointments.filter(a => a.status === 'confirmed');
 
   // Use live data when available, fallback to API summary, then hardcoded
   const activeJourneys = summary?.activeJourneys ?? 2;
@@ -60,7 +62,7 @@ export default function PatientOverview() {
     <div className="content fade-up">
       <div className="g4">
         <StatCard icon="🧭" cls="iv" label="Active Journeys" num={String(activeJourneys)} delta="Active" dc="dg" onClick={()=>go('p-journey')}/>
-        <StatCard icon="📅" cls="ig" label="Upcoming Appts" num={String(upcomingAppts)} delta={nextApptDate} dc="dg" onClick={()=>go('p-appointments')}/>
+        <StatCard icon="📅" cls="ig" label="Upcoming Appts" num={`${confirmedAppts.length}+${pendingAppts.length}`} delta={`${confirmedAppts.length} confirmed, ${pendingAppts.length} pending`} dc="dg" onClick={()=>go('p-appointments')}/>
         <StatCard icon="🔁" cls="iy" label="Referrals" num={String(referralsTotal)} delta={`${referralsPending} Pending`} dc="dy" onClick={()=>go('p-referrals')}/>
         <StatCard icon="✅" cls="ib" label="Steps Complete" num={`${stepsComplete}/${stepsTotal}`} delta={`${stepsPercent}%`} dc="dg"/>
       </div>
@@ -114,8 +116,8 @@ export default function PatientOverview() {
                         name: `${a.type || 'Appointment'}${a.provider_name ? ' — ' + a.provider_name : ''}`,
                         detail: `${a.time || 'TBD'}${a.provider_name ? ' · ' + a.provider_name : ''}`,
                         lang: '🌐 Reminder set',
-                        chip: a.status === 'confirmed' ? 'g' : 'v',
-                        chipLabel: a.status === 'confirmed' ? 'Confirmed' : a.status || 'Scheduled',
+                        chip: a.status === 'confirmed' ? 'g' : a.status === 'pending' ? 'y' : 'v',
+                        chipLabel: a.status === 'confirmed' ? 'Confirmed' : a.status === 'pending' ? '⏳ Pending' : a.status || 'Scheduled',
                       };
                     })
                   : [

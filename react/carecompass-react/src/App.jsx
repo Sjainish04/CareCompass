@@ -20,8 +20,13 @@ import { AICDISC }       from './components/ai/AICDISC';
 import {
   PatientJourney, PatientAppointments,
   PatientReferrals, PatientRecords,
-  ProviderOverview, SettingsView,
+  SettingsView,
 } from './components/Views';
+
+import ProviderAppointments from './components/provider/ProviderAppointments';
+import ProviderSchedule     from './components/provider/ProviderSchedule';
+import ProviderPatients     from './components/provider/ProviderPatients';
+import ProviderAnalytics    from './components/provider/ProviderAnalytics';
 
 // Views that use full-height flex layout (no scroll wrapper)
 const FLEX_VIEWS = new Set(['find-care', 'p-navigator']);
@@ -37,14 +42,17 @@ function AppShell() {
     'p-navigator':    <Navigator/>,
     'p-records':      <PatientRecords/>,
     'find-care':      <FindCare/>,
-    'prov-overview':  <ProviderOverview/>,
+    'prov-appointments': <ProviderAppointments/>,
+    'prov-schedule':     <ProviderSchedule/>,
+    'prov-patients':     <ProviderPatients/>,
+    'prov-analytics':    <ProviderAnalytics/>,
     'ai-translation': <AITranslation/>,
     'ai-recorder':    <AIRecorder/>,
     'ai-cdisc':       <AICDISC/>,
     'settings':       <SettingsView/>,
   };
 
-  const defaultView = role === 'provider' ? <ProviderOverview/> : <PatientOverview/>;
+  const defaultView = role === 'provider' ? <ProviderAppointments/> : <PatientOverview/>;
   const content = VIEW_MAP[view] || defaultView;
 
   return (

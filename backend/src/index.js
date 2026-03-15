@@ -16,6 +16,7 @@ import navigatorRoutes from './routes/navigator.js';
 import aiRoutes from './routes/ai.js';
 import analyticsRoutes from './routes/analytics.js';
 import settingsRoutes from './routes/settings.js';
+import schedulesRoutes from './routes/schedules.js';
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/api/navigator', navigatorRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/schedules', schedulesRoutes);
 
 // 404
 app.use((_req, res) => {

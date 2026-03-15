@@ -1,6 +1,55 @@
-# CareCompass Backend — API Server
+# CareCompass - GTA Healthcare Navigator
 
-Node.js/Express REST API powering the CareCompass GTA Healthcare Navigator.
+A full-stack multilingual healthcare navigation platform for Toronto's Greater Toronto Area. Connects patients with culturally and linguistically appropriate care through AI-powered translation, smart appointment workflows, and provider schedule management.
+
+## Key Features
+
+### Appointment Approval Workflow
+- Patients book appointments with status **pending** (not auto-confirmed)
+- Providers see pending requests and can **approve** or **decline with reason**
+- Patients see real-time status: Awaiting Approval / Confirmed / Declined (with reason + Rebook)
+- Dynamic badge counts update across sidebar, topbar, and overview
+
+### Provider Dashboard (Tabbed)
+- **Appointments** - Pending approvals with approve/decline, confirmed table, past history
+- **Schedule Builder** - Weekly availability grid (7 days, start/end time, slot duration, toggle)
+- **Blocked Dates** - Block dates for holidays/time off
+- **Patients** - All patients who've booked, grouped with expandable history
+- **Analytics** - Performance metrics, language mix, approval rate, weekly trends
+
+### Patient Side
+- Dashboard with care journey tracking, appointment overview, referral status
+- Clinic Finder with MapLibre GL map, language filters, real slot availability
+- AI Navigator Chat (Fatima) for multilingual care coordination
+- Health Records viewer (PHIPA/PIPEDA compliant)
+
+### Clinical AI
+- Real-Time Translation (Cohere, 23+ languages)
+- Voice Recorder with transcription and speaker diarization
+- CDISC/SDTM Mapping for EHR data extraction
+
+---
+
+## Architecture
+
+```
+Frontend (React + Vite)          Backend (Express)           Database (Supabase)
+========================         =================           ===================
+react/carecompass-react/   -->   backend/src/          -->   PostgreSQL + Auth
+  - React 18 + Router             - Express REST API         - appointments
+  - Zustand (auth state)          - Supabase Admin SDK       - referrals
+  - MapLibre GL JS                 - Cohere AI               - profiles / providers
+  - Vite dev proxy /api            - Rate limiting           - navigator_messages
+                                   - JWT auth middleware      - provider_schedules
+                                                             - provider_blocked_dates
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
 
 ---
 
@@ -25,25 +74,43 @@ Node.js/Express REST API powering the CareCompass GTA Healthcare Navigator.
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/your-org/carecompass-backend
-cd carecompass-backend
-npm install
+git clone https://github.com/your-org/carecompass
+cd carecompass
 
 # 2. Configure environment
 cp .env.example .env
 # Fill in .env with your keys (see below)
 
-# 3. Set up database
-# In Supabase Dashboard → SQL Editor, run in order:
-#   supabase_schema.sql   (from the outputs folder)
-#   src/lib/schema_v2.sql
+# 3. Set up database — In Supabase Dashboard → SQL Editor, run in order:
+#   supabase_migration.sql                 (base schema)
+#   supabase_appointment_workflow.sql       (workflow + schedules)
 
-# 4. Start dev server
-npm run dev
+# 4. Start backend
+cd backend && npm install && npm run dev
 
-# 5. Verify
+# 5. Start frontend (in another terminal)
+cd react/carecompass-react && npm install && npm run dev
+
+# 6. Verify
 curl http://localhost:3001/health
+# Open http://localhost:5173 in browser
 ```
+
+### Build for Production
+
+```bash
+cd react/carecompass-react
+npx vite build    # Output in dist/
+```
+
+### Default Demo Accounts
+
+| Role     | Email                | Password   |
+|----------|----------------------|------------|
+| Patient  | patient@demo.com     | demo123    |
+| Provider | provider@demo.com    | demo123    |
+
+> Create accounts via the signup page. Set `role` in `profiles` table to `patient` or `provider`.
 
 ---
 
@@ -141,25 +208,33 @@ Response:
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/appointments` | ✅ | List (patient: own / provider: their schedule) |
+| GET | `/api/appointments` | ✅ | Patient's own appointments |
 | GET | `/api/appointments/:id` | ✅ | Single appointment |
-| POST | `/api/appointments` | Patient | Book appointment |
-| PATCH | `/api/appointments/:id` | ✅ | Reschedule / update status |
-| DELETE | `/api/appointments/:id` | ✅ | Cancel (triggers slot recovery) |
-| GET | `/api/appointments/provider/today` | Provider | Today's schedule with patient details |
+| POST | `/api/appointments` | Patient | Book appointment (**status defaults to pending**) |
+| PATCH | `/api/appointments/:id` | ✅ | Reschedule / update |
+| DELETE | `/api/appointments/:id` | ✅ | Cancel appointment |
+| GET | `/api/appointments/provider/mine` | Provider | All appointments booked with this provider |
+| GET | `/api/appointments/provider/pending` | Provider | Pending appointments only |
+| PATCH | `/api/appointments/provider/:id/status` | Provider | Approve/decline with optional `rejection_reason` |
+| GET | `/api/appointments/provider/today` | Provider | Today's schedule |
 
-**POST /api/appointments**
+**Status flow**: `pending` → `confirmed` / `cancelled` / `completed` / `no_show`
+
+**PATCH /api/appointments/provider/:id/status**
 ```json
-{
-  "provider_id": "uuid",
-  "scheduled_at": "2025-01-15T10:30:00Z",
-  "type": "specialist",
-  "language": "ig",
-  "notes": "Cardiology follow-up"
-}
+{ "status": "cancelled", "rejection_reason": "Schedule conflict" }
 ```
 
-Query params for GET: `?status=scheduled&from=2025-01-01&to=2025-02-01&limit=20&offset=0`
+### Schedules
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/api/schedules/:providerId` | ❌ | Provider's weekly schedule (public) |
+| GET | `/api/schedules/:providerId/slots?date=YYYY-MM-DD` | ❌ | Available slots for a date |
+| PUT | `/api/schedules/me` | Provider | Upsert weekly schedule (array of day configs) |
+| GET | `/api/schedules/me/blocked` | Provider | List blocked dates |
+| POST | `/api/schedules/me/block` | Provider | Block a date |
+| DELETE | `/api/schedules/me/block/:id` | Provider | Unblock a date |
 
 ---
 
@@ -305,11 +380,16 @@ Response includes `mapping[]`, `compliance_review`, `csv[]`.
 
 ## Database Schema
 
-Two SQL files to run in Supabase:
+SQL files to run in Supabase (in order):
 
-1. **`supabase_schema.sql`** — Core tables: profiles, patient_records, providers, appointments, referrals, care_steps, reminders, navigator_log, audit_trail. Full RLS policies. Seed data.
+1. **`supabase_migration.sql`** — Core tables: profiles, providers, appointments, referrals, navigator_messages. RLS policies.
 
-2. **`src/lib/schema_v2.sql`** — Additions: navigator_messages, clinic_reviews, waitlist, cdisc_mappings. Additional indexes and triggers.
+2. **`supabase_appointment_workflow.sql`** — Appointment workflow enhancements:
+   - Default status changed to `pending`
+   - `rejection_reason`, `requested_date`, `requested_time` columns
+   - `provider_schedules` table (weekly availability)
+   - `provider_blocked_dates` table
+   - RLS policies for new tables
 
 ---
 

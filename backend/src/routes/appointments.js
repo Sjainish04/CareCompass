@@ -4,6 +4,9 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
+// ── Actual DB columns ──
+// id, patient_id, provider_id, preferred_date, preferred_time, appointment_type, notes, status, rejection_reason, created_at
+
 // Helper: look up provider name from profiles table
 async function lookupProviderName(providerId) {
   if (!providerId) return '';
@@ -15,31 +18,31 @@ async function lookupProviderName(providerId) {
       .single();
     if (data?.full_name) return data.full_name;
   } catch {}
-  // Fallback: check providers table
   try {
     const { data } = await supabaseAdmin
       .from('providers')
-      .select('name')
+      .select('name, clinic_name')
       .eq('id', providerId)
       .single();
+    if (data?.clinic_name) return data.clinic_name;
     if (data?.name) return data.name;
   } catch {}
   return '';
 }
 
 // Map DB row to frontend-expected shape
-// DB columns: id, user_id, provider_id, provider_name, date, time, datetime, type, language, notes, status, created_at
 function mapApptToFrontend(row, providerName) {
   return {
     id: row.id,
-    user_id: row.user_id,
+    user_id: row.patient_id,
     provider_id: row.provider_id,
-    provider_name: providerName || row.provider_name || '',
-    date: row.date,
-    time: row.time,
-    type: row.type,
+    provider_name: providerName || '',
+    date: row.preferred_date,
+    time: row.preferred_time,
+    type: row.appointment_type,
     notes: row.notes,
     status: row.status,
+    rejection_reason: row.rejection_reason || null,
     created_at: row.created_at,
   };
 }
@@ -66,7 +69,7 @@ router.get('/provider/mine', requireAuth, requireRole('provider'), async (req, r
     if (error) return res.status(500).json({ error: error.message });
 
     // Enrich with patient names from profiles
-    const patientIds = [...new Set((data || []).map(a => a.user_id).filter(Boolean))];
+    const patientIds = [...new Set((data || []).map(a => a.patient_id).filter(Boolean))];
     let profileMap = {};
     if (patientIds.length) {
       const { data: profiles } = await supabaseAdmin
@@ -78,7 +81,7 @@ router.get('/provider/mine', requireAuth, requireRole('provider'), async (req, r
 
     const mapped = (data || []).map(row => ({
       ...mapApptToFrontend(row, req.user.full_name),
-      patient_name: profileMap[row.user_id] || 'Unknown Patient',
+      patient_name: profileMap[row.patient_id] || 'Unknown Patient',
     }));
     res.json(mapped);
   } catch (err) { next(err); }
@@ -103,15 +106,50 @@ router.patch('/provider/:id/status', requireAuth, requireRole('provider'), async
       return res.status(403).json({ error: 'Not your appointment' });
     }
 
+    const updatePayload = { status };
+    if (status === 'cancelled' && req.body.rejection_reason) {
+      updatePayload.rejection_reason = req.body.rejection_reason;
+    }
+
     const { data, error } = await supabaseAdmin
       .from('appointments')
-      .update({ status })
+      .update(updatePayload)
       .eq('id', req.params.id)
       .select()
       .single();
 
     if (error) return res.status(400).json({ error: error.message });
-    res.json(mapApptToFrontend(data));
+    res.json({ ...mapApptToFrontend(data), rejection_reason: data.rejection_reason || null });
+  } catch (err) { next(err); }
+});
+
+// GET /api/appointments/provider/pending — pending appointments for this provider
+router.get('/provider/pending', requireAuth, requireRole('provider'), async (req, res, next) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('appointments')
+      .select('*')
+      .eq('provider_id', req.user.id)
+      .eq('status', 'pending')
+      .order('preferred_date', { ascending: true });
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    const patientIds = [...new Set((data || []).map(a => a.patient_id).filter(Boolean))];
+    let profileMap = {};
+    if (patientIds.length) {
+      const { data: profiles } = await supabaseAdmin
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', patientIds);
+      profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p.full_name]));
+    }
+
+    const mapped = (data || []).map(row => ({
+      ...mapApptToFrontend(row, req.user.full_name),
+      patient_name: profileMap[row.patient_id] || 'Unknown Patient',
+    }));
+    res.json(mapped);
   } catch (err) { next(err); }
 });
 
@@ -122,8 +160,8 @@ router.get('/provider/today', requireAuth, async (req, res, next) => {
     const { data, error } = await supabaseAdmin
       .from('appointments')
       .select('*')
-      .eq('date', today)
-      .order('time', { ascending: true });
+      .eq('preferred_date', today)
+      .order('preferred_time', { ascending: true });
 
     if (error) return res.status(500).json({ error: error.message });
     const mapped = await enrichWithProviderNames(data || []);
@@ -137,7 +175,7 @@ router.get('/', requireAuth, async (req, res, next) => {
     const { data, error } = await supabaseAdmin
       .from('appointments')
       .select('*')
-      .eq('user_id', req.user.id)
+      .eq('patient_id', req.user.id)
       .order('created_at', { ascending: false });
 
     if (error) return res.status(500).json({ error: error.message });
@@ -153,7 +191,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
       .from('appointments')
       .select('*')
       .eq('id', req.params.id)
-      .eq('user_id', req.user.id)
+      .eq('patient_id', req.user.id)
       .single();
 
     if (error || !data) return res.status(404).json({ error: 'Appointment not found' });
@@ -167,9 +205,9 @@ router.post('/', requireAuth, async (req, res, next) => {
   try {
     const body = req.body;
 
-    // Accept frontend field names
-    let date = body.date || body.preferredDate || '';
-    let time = body.time || body.preferredTime || '';
+    // Accept frontend field names and map to DB columns
+    let date = body.date || body.preferredDate || body.preferred_date || '';
+    let time = body.time || body.preferredTime || body.preferred_time || '';
     if (body.datetime && !date) {
       const parts = body.datetime.split(' ');
       date = parts[0] || '';
@@ -177,14 +215,13 @@ router.post('/', requireAuth, async (req, res, next) => {
     }
 
     const row = {
-      user_id: req.user.id,
+      patient_id: req.user.id,
       provider_id: body.provider_id || null,
-      provider_name: body.provider_name || '',
-      date,
-      time,
-      type: body.type || body.appointment_type || 'Specialist Visit',
+      preferred_date: date,
+      preferred_time: time,
+      appointment_type: body.type || body.appointment_type || 'Specialist Visit',
       notes: body.notes || '',
-      status: body.status || 'confirmed',
+      status: 'pending',
     };
 
     const { data, error } = await supabaseAdmin
@@ -195,7 +232,6 @@ router.post('/', requireAuth, async (req, res, next) => {
 
     if (error) return res.status(400).json({ error: error.message });
 
-    // Look up provider name for response
     const provName = body.provider_name || await lookupProviderName(data.provider_id);
     res.status(201).json(mapApptToFrontend(data, provName));
   } catch (err) { next(err); }
@@ -205,18 +241,17 @@ router.post('/', requireAuth, async (req, res, next) => {
 router.patch('/:id', requireAuth, async (req, res, next) => {
   try {
     const updates = {};
-    if (req.body.date) updates.date = req.body.date;
-    if (req.body.time) updates.time = req.body.time;
+    if (req.body.date) updates.preferred_date = req.body.date;
+    if (req.body.time) updates.preferred_time = req.body.time;
     if (req.body.status) updates.status = req.body.status;
     if (req.body.notes) updates.notes = req.body.notes;
-    if (req.body.type) updates.type = req.body.type;
-    if (req.body.provider_name) updates.provider_name = req.body.provider_name;
+    if (req.body.type) updates.appointment_type = req.body.type;
 
     const { data, error } = await supabaseAdmin
       .from('appointments')
       .update(updates)
       .eq('id', req.params.id)
-      .eq('user_id', req.user.id)
+      .eq('patient_id', req.user.id)
       .select()
       .single();
 
@@ -233,7 +268,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       .from('appointments')
       .delete()
       .eq('id', req.params.id)
-      .eq('user_id', req.user.id);
+      .eq('patient_id', req.user.id);
 
     if (error) return res.status(400).json({ error: error.message });
     res.json({ message: 'Appointment cancelled' });

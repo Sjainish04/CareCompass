@@ -15,7 +15,10 @@ export default function Topbar() {
     'p-referrals':   { t:'Referral Tracker',               s:`${badgeCounts.referrals || 0} active referrals` },
     'p-navigator':   { t:'My Navigator — Fatima',          s:'Online · Igbo · English · Yoruba' },
     'p-records':     { t:'Health Records',                 s:'PHIPA-compliant · Encrypted · Read-only' },
-    'prov-overview': { t:'Provider Dashboard',             s: today },
+    'prov-appointments': { t:'Appointments',    s: `${badgeCounts.providerPending || 0} pending review` },
+    'prov-schedule':     { t:'Schedule Builder', s: 'Set your weekly availability' },
+    'prov-patients':     { t:'My Patients',      s: 'Patients who booked with you' },
+    'prov-analytics':    { t:'Analytics',        s: 'Performance metrics and insights' },
     'settings':      { t:'Settings',                       s:'Preferences and account management' },
     'ai-translation':{ t:'🌐 Real-Time AI Translation',   s:'Cohere command-a-translate-08-2025 · 23 languages' },
     'ai-recorder':   { t:'🎙 Voice Recorder',              s:'Real-time transcription · Speaker diarization · AI insights' },
@@ -37,13 +40,17 @@ export default function Topbar() {
         return <button className="btn btn-p" onClick={() => openModal('bookAppt')}>+ New Booking</button>;
       case 'p-navigator':
         return <button className="btn btn-g">🗑️ Clear Chat</button>;
-      case 'prov-overview':
+      case 'prov-appointments':
         return <>
           <button className="btn btn-p" onClick={() => openModal('bookAppt')}>+ New Appointment</button>
           <div onClick={() => toast('No new notifications','All caught up!','🔔')} style={{ width:30, height:30, borderRadius:7, background:'rgba(255,255,255,.04)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', position:'relative', fontSize:'.8rem' }}>
             🔔<span style={{ position:'absolute', top:4, right:4, width:6, height:6, borderRadius:'50%', background:'var(--amethyst)', border:'1.5px solid var(--surface)' }}/>
           </div>
         </>;
+      case 'prov-schedule':
+      case 'prov-patients':
+      case 'prov-analytics':
+        return null;
       case 'find-care':
         return <button className="btn btn-g" onClick={() => openModal('bookAppt')}>📅 Book Appointment</button>;
       case 'ai-translation':

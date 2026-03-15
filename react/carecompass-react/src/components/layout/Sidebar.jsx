@@ -56,6 +56,9 @@ export default function Sidebar() {
               } else if (item.id === 'p-referrals') {
                 badge = badgeCounts.referrals > 0 ? String(badgeCounts.referrals) : item.badge;
                 bc = badgeCounts.referrals > 0 ? 'y' : item.bc;
+              } else if (item.id === 'prov-appointments' && badgeCounts.providerPending > 0) {
+                badge = String(badgeCounts.providerPending);
+                bc = 'y';
               }
               return (
                 <div key={item.id} onClick={() => go(item.id)} data-id={item.id} style={{
