@@ -1,24 +1,27 @@
 // src/components/layout/Topbar.jsx
 import { useApp } from '../../hooks/useApp';
 
-const TOPBAR = {
-  'home':          { t:'Welcome to CareCompass',         s:'GTA Healthcare Navigation Platform' },
-  'p-overview':    { t:'Patient Dashboard',              s:'Amara Nwosu · Igbo · Dec 13, 2024' },
-  'p-journey':     { t:'My Care Journey',                s:'Cardiology referral pathway · 75% complete' },
-  'find-care':     { t:'Find Care Near You 🗺️',          s:'12 clinics across the GTA · click pins or search' },
-  'p-appointments':{ t:'My Appointments',               s:'2 upcoming · Last visit Dec 5' },
-  'p-referrals':   { t:'Referral Tracker',               s:'3 active referrals · 1 pending booking' },
-  'p-navigator':   { t:'My Navigator — Fatima',          s:'Online · Igbo · English · Yoruba' },
-  'p-records':     { t:'Health Records',                 s:'PHIPA-compliant · Encrypted · Read-only' },
-  'prov-overview': { t:'Provider Dashboard',             s:'Dr. Adeyemi · Scarborough Health Network · Dec 13' },
-  'settings':      { t:'Settings',                       s:'Preferences and account management' },
-  'ai-translation':{ t:'🌐 Real-Time AI Translation',   s:'Cohere command-a-translate-08-2025 · 23 languages' },
-  'ai-recorder':   { t:'🎙 Voice Recorder',              s:'Real-time transcription · Speaker diarization · AI insights' },
-  'ai-cdisc':      { t:'🧬 CDISC / SDTM Mapping',       s:'Multi-modal AI extraction → CDISC standards → CSV export' },
-};
-
 export default function Topbar() {
-  const { view, go, toast, openModal } = useApp();
+  const { view, go, toast, openModal, badgeCounts } = useApp();
+
+  const today = new Date().toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  const TOPBAR = {
+    'home':          { t:'Welcome to CareCompass',         s:'GTA Healthcare Navigation Platform' },
+    'p-overview':    { t:'Patient Dashboard',              s: today },
+    'p-journey':     { t:'My Care Journey',                s:'Cardiology referral pathway · 75% complete' },
+    'find-care':     { t:'Find Care Near You 🗺️',          s:'12 clinics across the GTA · click pins or search' },
+    'p-appointments':{ t:'My Appointments',               s:`${badgeCounts.appointments || 0} upcoming` },
+    'p-referrals':   { t:'Referral Tracker',               s:`${badgeCounts.referrals || 0} active referrals` },
+    'p-navigator':   { t:'My Navigator — Fatima',          s:'Online · Igbo · English · Yoruba' },
+    'p-records':     { t:'Health Records',                 s:'PHIPA-compliant · Encrypted · Read-only' },
+    'prov-overview': { t:'Provider Dashboard',             s: today },
+    'settings':      { t:'Settings',                       s:'Preferences and account management' },
+    'ai-translation':{ t:'🌐 Real-Time AI Translation',   s:'Cohere command-a-translate-08-2025 · 23 languages' },
+    'ai-recorder':   { t:'🎙 Voice Recorder',              s:'Real-time transcription · Speaker diarization · AI insights' },
+    'ai-cdisc':      { t:'🧬 CDISC / SDTM Mapping',       s:'Multi-modal AI extraction → CDISC standards → CSV export' },
+  };
+
   const td = TOPBAR[view] || { t: view, s: '' };
 
   const renderButtons = () => {

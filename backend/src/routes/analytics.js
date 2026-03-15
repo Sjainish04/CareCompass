@@ -10,7 +10,7 @@ router.get('/provider', requireAuth, async (req, res, next) => {
     const today = new Date().toISOString().slice(0, 10);
 
     const [apptsRes, allApptsRes] = await Promise.all([
-      supabaseAdmin.from('appointments').select('*').eq('preferred_date', today),
+      supabaseAdmin.from('appointments').select('*').eq('date', today),
       supabaseAdmin.from('appointments').select('status'),
     ]);
 
@@ -43,7 +43,7 @@ router.get('/patient', requireAuth, async (req, res, next) => {
     const { data: referrals } = await supabaseAdmin
       .from('referrals')
       .select('status')
-      .eq('patient_id', req.user.id);
+      .eq('user_id', req.user.id);
 
     res.json({
       total_steps: 8,

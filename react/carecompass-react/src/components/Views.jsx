@@ -382,33 +382,130 @@ export function PatientAppointments() {
 /* ═══════════════════════════════════════════════
    PATIENT REFERRALS
 ═══════════════════════════════════════════════ */
+// Specialty keywords to match referrals against booked appointments
+const REFERRAL_SPECIALTY_MAP = {
+  'Cardiology': ['cardiology', 'heart', 'cardiac', 'mount sinai cardiology'],
+  'Hematology': ['hematology', 'blood', 'lifelabs'],
+  'Orthopaedics': ['orthopaedics', 'orthopedics', 'ortho', 'sunnybrook', 'bone'],
+  'Mental Health': ['mental', 'psychiatry', 'psychology', 'camh', 'wellness'],
+  'Family Medicine': ['family', 'general', 'gp'],
+  'Internal Medicine': ['internal', 'medicine'],
+  'Paediatrics': ['paediatrics', 'pediatrics', 'sickkids', 'children'],
+};
+
+function isReferralMatchedByAppt(referralTitle, appointments) {
+  const titleLower = referralTitle.toLowerCase();
+  for (const [spec, keywords] of Object.entries(REFERRAL_SPECIALTY_MAP)) {
+    if (keywords.some(kw => titleLower.includes(kw))) {
+      // Check if any booked appointment matches this specialty
+      return appointments.some(a => {
+        const provLower = (a.provider_name || '').toLowerCase();
+        const typeLower = (a.type || '').toLowerCase();
+        const notesLower = (a.notes || '').toLowerCase();
+        const combined = provLower + ' ' + typeLower + ' ' + notesLower;
+        return keywords.some(kw => combined.includes(kw)) ||
+               combined.includes(spec.toLowerCase());
+      });
+    }
+  }
+  return false;
+}
+
 export function PatientReferrals() {
   const { go, toast } = useApp();
   const [referralsData, setReferralsData] = useState(null);
+  const [appointments, setAppointments] = useState([]);
 
+  function fetchData() {
+    apiGet('/referrals').then(setReferralsData).catch(() => {});
+    apiGet('/appointments')
+      .then(data => { if (Array.isArray(data)) setAppointments(data.filter(a => a.status !== 'cancelled')); })
+      .catch(() => {});
+  }
+
+  useEffect(() => { fetchData(); }, []);
+
+  // Refresh when appointments change
   useEffect(() => {
-    apiGet('/referrals')
-      .then(setReferralsData)
-      .catch(() => {}); // use hardcoded fallback
+    const h = () => fetchData();
+    window.addEventListener('appointments:refresh', h);
+    return () => window.removeEventListener('appointments:refresh', h);
   }, []);
 
-  // Fallback hardcoded data
-  const defaultRefs = [
-    {ico:'❤️',title:'Cardiology — Dr. Patel, Mount Sinai',detail:'Routine · Referred by Dr. Adeyemi · Dec 1',chip:'g',chipLabel:'Booked · Dec 18',steps:'3/4',w:'75%',btnLabel:'Details',btnCls:'btn-g',btnFn:()=>toast('Referral details','Cardiology referral — Dr. Patel · Active','❤️')},
-    {ico:'🩸',title:'Hematology — LifeLabs Scarborough',detail:'Routine · Blood work complete · Results Dec 10',chip:'g',chipLabel:'Completed',steps:'4/4',w:'100%',btnLabel:'Results',btnCls:'btn-g',btnFn:()=>toast('Results ready','Blood work results available · Dec 10','🩸')},
-    {ico:'🦴',title:'Orthopaedics — Sunnybrook Health Sciences',detail:'Semi-urgent · Referred Dec 8 · Awaiting booking',chip:'y',chipLabel:'Pending',steps:'1/4',w:'20%',barColor:'linear-gradient(90deg,#d97706,var(--yellow))',btnLabel:'Book Now →',btnCls:'btn-p',btnFn:()=>go('find-care')},
+  // Build referral display: cross-reference booked appointments
+  const baseRefs = [
+    {ico:'❤️',spec:'Cardiology',title:'Cardiology — Dr. Patel, Mount Sinai',detail:'Routine · Referred by Dr. Adeyemi · Dec 1',baseChip:'g',baseLabel:'Booked · Dec 18',baseSteps:'3/4',baseW:'75%',btnLabel:'Details',btnCls:'btn-g',btnFn:()=>toast('Referral details','Cardiology referral — Dr. Patel · Active','❤️')},
+    {ico:'🩸',spec:'Hematology',title:'Hematology — LifeLabs Scarborough',detail:'Routine · Blood work complete · Results Dec 10',baseChip:'g',baseLabel:'Completed',baseSteps:'4/4',baseW:'100%',btnLabel:'Results',btnCls:'btn-g',btnFn:()=>toast('Results ready','Blood work results available · Dec 10','🩸')},
+    {ico:'🦴',spec:'Orthopaedics',title:'Orthopaedics — Sunnybrook Health Sciences',detail:'Semi-urgent · Referred Dec 8 · Awaiting booking',baseChip:'y',baseLabel:'Pending',baseSteps:'1/4',baseW:'20%',barColor:'linear-gradient(90deg,#d97706,var(--yellow))',btnLabel:'Book Now →',btnCls:'btn-p',btnFn:()=>go('find-care')},
   ];
 
-  const refs = referralsData?.referrals ?? defaultRefs;
-  const activeCount = referralsData?.activeCount ?? 3;
-  const pendingCount = referralsData?.pendingCount ?? 1;
+  // Augment with any new referrals from booked appointments that don't match existing
+  const bookedSpecs = new Set();
+  appointments.forEach(a => {
+    const notes = (a.notes || '').toLowerCase();
+    const provider = (a.provider_name || '').toLowerCase();
+    for (const [spec, keywords] of Object.entries(REFERRAL_SPECIALTY_MAP)) {
+      if (keywords.some(kw => notes.includes(kw) || provider.includes(kw))) {
+        bookedSpecs.add(spec);
+      }
+    }
+  });
+
+  const refs = (referralsData?.referrals ?? baseRefs).map(r => {
+    const matched = isReferralMatchedByAppt(r.title || r.specialty || '', appointments);
+    if (matched && (r.baseChip === 'y' || r.chip === 'y' || r.baseLabel === 'Pending' || r.chipLabel === 'Pending')) {
+      // This pending referral now has a matching appointment — mark as booked
+      const matchingAppt = appointments.find(a => {
+        const combined = ((a.provider_name || '') + ' ' + (a.notes || '') + ' ' + (a.type || '')).toLowerCase();
+        const titleLower = (r.title || r.specialty || '').toLowerCase();
+        for (const [, keywords] of Object.entries(REFERRAL_SPECIALTY_MAP)) {
+          if (keywords.some(kw => titleLower.includes(kw)) && keywords.some(kw => combined.includes(kw))) return true;
+        }
+        return false;
+      });
+      const apptDate = matchingAppt?.date
+        ? new Date(matchingAppt.date + 'T12:00:00').toLocaleDateString('en', { month:'short', day:'numeric' })
+        : '';
+      return {
+        ...r,
+        chip: r.baseChip ? undefined : r.chip,
+        baseChip: 'g',
+        baseLabel: `Booked${apptDate ? ' · ' + apptDate : ''}`,
+        baseSteps: '3/4',
+        baseW: '75%',
+        barColor: undefined,
+        btnLabel: 'Details',
+        btnCls: 'btn-g',
+        btnFn: () => toast('Appointment booked', `${matchingAppt?.provider_name || r.title} · ${apptDate}`, '✅'),
+        detail: r.detail?.replace('Awaiting booking', `Booked${matchingAppt?.provider_name ? ' at ' + matchingAppt.provider_name : ''}`) || r.detail,
+      };
+    }
+    return r;
+  });
+
+  const displayRefs = refs.map(r => ({
+    ico: r.ico,
+    title: r.title || r.specialty || '',
+    detail: r.detail || r.notes || '',
+    chip: r.baseChip || r.chip || 'gr',
+    chipLabel: r.baseLabel || r.chipLabel || r.status || '',
+    steps: r.baseSteps || r.steps || '0/4',
+    w: r.baseW || r.w || '0%',
+    barColor: r.barColor,
+    btnLabel: r.btnLabel || 'View',
+    btnCls: r.btnCls || 'btn-g',
+    btnFn: r.btnFn || (() => {}),
+  }));
+
+  const pendingCount = displayRefs.filter(r => r.chip === 'y').length;
+  const activeCount = displayRefs.length;
 
   return (
     <div className="content fade-up">
       <div className="card gap">
         <div className="ch"><div><div className="ch-title">🔁 All Referrals</div><div className="ch-sub">{activeCount} active · {pendingCount} pending booking</div></div></div>
-        {refs.map((r,i)=>(
-          <div key={i} style={{ display:'flex', alignItems:'center', gap:'.7rem', padding:'.82rem 1.2rem', borderBottom: i<refs.length-1?'1px solid var(--border)':'none' }}>
+        {displayRefs.map((r,i)=>(
+          <div key={i} style={{ display:'flex', alignItems:'center', gap:'.7rem', padding:'.82rem 1.2rem', borderBottom: i<displayRefs.length-1?'1px solid var(--border)':'none' }}>
             <div style={{ fontSize:'1.1rem', flexShrink:0, width:28, textAlign:'center' }}>{r.ico}</div>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:'.78rem', fontWeight:500 }}>{r.title}</div>

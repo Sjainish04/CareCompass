@@ -1,6 +1,7 @@
 // src/hooks/useApp.jsx
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { apiGet } from '../lib/api';
 
 const AppCtx = createContext(null);
 
@@ -29,6 +30,38 @@ export function AppProvider({ children }) {
   const [toasts, setToasts]  = useState([]);
   const [modal, setModal]    = useState(null);
   const toastId = useRef(0);
+
+  // Live badge counts (fetched from API)
+  const [badgeCounts, setBadgeCounts] = useState({ appointments: 0, referrals: 0 });
+
+  const refreshBadgeCounts = useCallback(() => {
+    apiGet('/appointments')
+      .then(data => {
+        if (Array.isArray(data)) {
+          const upcoming = data.filter(a => a.status !== 'completed' && a.status !== 'cancelled');
+          setBadgeCounts(prev => ({ ...prev, appointments: upcoming.length }));
+        }
+      })
+      .catch(() => {});
+    apiGet('/referrals')
+      .then(data => {
+        const pending = data?.pendingCount ?? data?.referrals?.filter(r => r.chip === 'y')?.length ?? 0;
+        const active = data?.activeCount ?? data?.referrals?.length ?? 0;
+        setBadgeCounts(prev => ({ ...prev, referrals: active }));
+      })
+      .catch(() => {});
+  }, []);
+
+  // Fetch badge counts on mount and on appointment changes
+  useEffect(() => {
+    if (user) refreshBadgeCounts();
+  }, [user, refreshBadgeCounts]);
+
+  useEffect(() => {
+    const h = () => refreshBadgeCounts();
+    window.addEventListener('appointments:refresh', h);
+    return () => window.removeEventListener('appointments:refresh', h);
+  }, [refreshBadgeCounts]);
 
   // When role changes (login/logout/profile load), reset view to role default
   // if current view is not allowed for the new role
@@ -61,7 +94,7 @@ export function AppProvider({ children }) {
   const closeModal = useCallback(() => setModal(null), []);
 
   return (
-    <AppCtx.Provider value={{ role, view, go, toast, toasts, modal, openModal, closeModal }}>
+    <AppCtx.Provider value={{ role, view, go, toast, toasts, modal, openModal, closeModal, badgeCounts, refreshBadgeCounts }}>
       {children}
     </AppCtx.Provider>
   );

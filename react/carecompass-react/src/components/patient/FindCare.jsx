@@ -1,28 +1,24 @@
 // src/components/patient/FindCare.jsx
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '../../hooks/useApp';
-import { CLINICS as FALLBACK_CLINICS, GEO, geoToXY } from '../../data';
+import { CLINICS as FALLBACK_CLINICS } from '../../data';
 import { apiGet } from '../../lib/api';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
-const W = 800, H = 600;
+// GTA center coordinates
+const GTA_CENTER = [-79.3832, 43.6532]; // [lng, lat]
+const GTA_ZOOM = 10.5;
 
-// Road-like paths across the GTA for visual context
-const ROADS = [
-  // Highway 401 (east-west)
-  'M 0,260 Q 200,255 400,250 Q 600,245 800,240',
-  // Highway 407 (east-west, north)
-  'M 0,180 Q 200,175 400,170 Q 600,165 800,160',
-  // DVP (north-south)
-  'M 480,0 Q 475,150 470,300 Q 465,450 460,600',
-  // Highway 404 (north-south)
-  'M 520,0 Q 515,150 510,300 Q 505,450 500,600',
-  // Gardiner Expressway (south)
-  'M 0,420 Q 150,410 300,400 Q 450,390 600,385',
-  // Highway 427 (north-south west)
-  'M 180,0 Q 175,200 170,400 Q 165,500 160,600',
-  // QEW (southwest)
-  'M 0,380 Q 100,390 200,400 Q 300,420 400,440',
-];
+// Specialty → color mapping
+const SPEC_COLORS = {
+  'Family Medicine': '#7c3aed',
+  'Cardiology':      '#db2777',
+  'Internal Medicine':'#0891b2',
+  'Mental Health':   '#059669',
+  'Paediatrics':     '#d97706',
+  'Orthopaedics':    '#6366f1',
+};
 
 function starsH(r) {
   return Array.from({length:5},(_,i)=><span key={i} style={{color:i<Math.floor(r)?'#f59e0b':'rgba(255,255,255,.13)',fontSize:'.65rem'}}>&#9733;</span>);
@@ -39,12 +35,11 @@ export default function FindCare() {
   const [sort, setSort]     = useState('dist');
   const [mapFilt, setMapFilt] = useState('all');
   const [selSlot, setSelSlot] = useState(null);
-  const [tooltip, setTooltip] = useState(null);
 
-  // SVG pan/zoom state
-  const svgRef = useRef(null);
-  const [vb, setVb] = useState({ x: 0, y: 0, w: W, h: H });
-  const drag = useRef(null);
+  // MapLibre refs
+  const mapContainer = useRef(null);
+  const map = useRef(null);
+  const markers = useRef([]);
 
   useEffect(() => {
     apiGet('/providers')
@@ -53,6 +48,132 @@ export default function FindCare() {
       })
       .catch(() => {});
   }, []);
+
+  // Initialize MapLibre
+  useEffect(() => {
+    if (map.current || !mapContainer.current) return;
+
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: {
+        version: 8,
+        sources: {
+          'osm-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          }
+        },
+        layers: [
+          {
+            id: 'osm-tiles',
+            type: 'raster',
+            source: 'osm-tiles',
+            minzoom: 0,
+            maxzoom: 19,
+            paint: {
+              'raster-saturation': -0.85,
+              'raster-brightness-max': 0.35,
+              'raster-contrast': 0.15,
+            }
+          }
+        ]
+      },
+      center: GTA_CENTER,
+      zoom: GTA_ZOOM,
+      maxZoom: 17,
+      minZoom: 8,
+    });
+
+    map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
+
+    return () => {
+      markers.current.forEach(m => m.remove());
+      markers.current = [];
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, []);
+
+  // Update markers when visible clinics change
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Remove old markers
+    markers.current.forEach(m => m.remove());
+    markers.current = [];
+
+    vis.forEach(c => {
+      if (!c.lat || !c.lng) return;
+
+      const color = SPEC_COLORS[c.spec] || c.color || '#7c3aed';
+      const isSel = c.id === selId;
+
+      // Create custom marker element
+      const el = document.createElement('div');
+      el.style.cssText = `
+        width: ${isSel ? 28 : 20}px;
+        height: ${isSel ? 28 : 20}px;
+        border-radius: 50%;
+        background: ${color};
+        border: ${isSel ? '3px' : '2px'} solid rgba(255,255,255,0.9);
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4)${isSel ? ', 0 0 0 4px rgba(109,40,217,0.35)' : ''};
+      `;
+
+      el.addEventListener('mouseenter', () => {
+        if (!isSel) {
+          el.style.width = '26px';
+          el.style.height = '26px';
+          el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.5)';
+        }
+      });
+      el.addEventListener('mouseleave', () => {
+        if (!isSel) {
+          el.style.width = '20px';
+          el.style.height = '20px';
+          el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+        }
+      });
+
+      // Popup content
+      const popupHTML = `
+        <div style="font-family:'DM Sans',sans-serif;min-width:180px;color:#fff;">
+          <div style="font-weight:700;font-size:.82rem;margin-bottom:4px;">${c.icon || '🏥'} ${c.name}</div>
+          <div style="font-size:.68rem;color:#a78bfa;margin-bottom:4px;">${c.spec}</div>
+          <div style="color:#f59e0b;font-size:.68rem;margin-bottom:4px;">${'★'.repeat(Math.round(c.rating))}${'☆'.repeat(5-Math.round(c.rating))} ${c.rating}</div>
+          <div style="font-size:.64rem;color:#ccc;">${c.acc?'✓ Accepting':'Waitlist'} · ${c.dist}km · ${c.wait}d wait</div>
+        </div>
+      `;
+
+      const popup = new maplibregl.Popup({
+        offset: 14,
+        closeButton: false,
+        closeOnClick: false,
+        className: 'cc-map-popup',
+      }).setHTML(popupHTML);
+
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([c.lng, c.lat])
+        .setPopup(popup)
+        .addTo(map.current);
+
+      el.addEventListener('mouseenter', () => marker.togglePopup());
+      el.addEventListener('mouseleave', () => marker.togglePopup());
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handlePinClick(c);
+      });
+
+      markers.current.push(marker);
+    });
+  }, [vis, selId]);
 
   const selClinic = allClinics.find(c=>c.id===selId);
 
@@ -85,58 +206,13 @@ export default function FindCare() {
 
   useEffect(() => { applyFilters(search, filters, sort, mapFilt); }, [search, filters, sort, mapFilt]);
 
-  // Pan handlers
-  function onMouseDown(e) {
-    if (e.button !== 0) return;
-    drag.current = { sx: e.clientX, sy: e.clientY, vx: vb.x, vy: vb.y };
-  }
-  function onMouseMove(e) {
-    if (!drag.current) return;
-    const svg = svgRef.current;
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    const dx = (e.clientX - drag.current.sx) * (vb.w / rect.width);
-    const dy = (e.clientY - drag.current.sy) * (vb.h / rect.height);
-    setVb(v => ({ ...v, x: drag.current.vx - dx, y: drag.current.vy - dy }));
-  }
-  function onMouseUp() { drag.current = null; }
-
-  // Zoom handler
-  function onWheel(e) {
-    e.preventDefault();
-    const svg = svgRef.current;
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    const mx = ((e.clientX - rect.left) / rect.width) * vb.w + vb.x;
-    const my = ((e.clientY - rect.top) / rect.height) * vb.h + vb.y;
-    const factor = e.deltaY > 0 ? 1.15 : 0.87;
-    const nw = Math.max(200, Math.min(W * 2, vb.w * factor));
-    const nh = Math.max(150, Math.min(H * 2, vb.h * factor));
-    setVb({
-      x: mx - (mx - vb.x) * (nw / vb.w),
-      y: my - (my - vb.y) * (nh / vb.h),
-      w: nw,
-      h: nh,
-    });
-  }
-
-  function zoom(dir) {
-    const factor = dir === 'in' ? 0.8 : 1.25;
-    setVb(v => {
-      const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
-      const nw = Math.max(200, Math.min(W * 2, v.w * factor));
-      const nh = Math.max(150, Math.min(H * 2, v.h * factor));
-      return { x: cx - nw / 2, y: cy - nh / 2, w: nw, h: nh };
-    });
-  }
-
   function handlePinClick(c) {
     setSelId(c.id);
     setDet(true);
     setSelSlot(null);
-    // Center map on clinic
-    const { x, y } = geoToXY(c.lat, c.lng, W, H);
-    setVb(v => ({ ...v, x: x - v.w / 2, y: y - v.h / 2 }));
+    if (map.current && c.lat && c.lng) {
+      map.current.flyTo({ center: [c.lng, c.lat], zoom: 14, duration: 800 });
+    }
   }
 
   return (
@@ -196,102 +272,19 @@ export default function FindCare() {
         </div>
       </div>
 
-      {/* Map area - SVG */}
-      <div style={{ flex:1, position:'relative', background:'#080515', overflow:'hidden' }}>
-        <svg
-          ref={svgRef}
-          viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
-          style={{ width:'100%', height:'100%', cursor: drag.current ? 'grabbing' : 'grab' }}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          onMouseLeave={onMouseUp}
-          onWheel={onWheel}
-        >
-          {/* Background */}
-          <rect x={-200} y={-200} width={W+400} height={H+400} fill="#080515"/>
-
-          {/* Grid lines */}
-          {Array.from({length:17},(_,i)=>i*50).map(v=>(
-            <g key={`grid-${v}`}>
-              <line x1={v} y1={-200} x2={v} y2={H+200} stroke="rgba(139,92,246,.06)" strokeWidth="0.5"/>
-              <line x1={-200} y1={v} x2={W+200} y2={v} stroke="rgba(139,92,246,.06)" strokeWidth="0.5"/>
-            </g>
-          ))}
-
-          {/* Lake Ontario (bottom area) */}
-          <ellipse cx={400} cy={620} rx={500} ry={180} fill="rgba(14,116,144,.08)" stroke="rgba(14,116,144,.15)" strokeWidth="1"/>
-          <text x={400} y={570} textAnchor="middle" fill="rgba(14,116,144,.25)" fontSize="12" fontFamily="'DM Sans',sans-serif">Lake Ontario</text>
-
-          {/* Roads */}
-          {ROADS.map((d,i)=>(
-            <path key={i} d={d} fill="none" stroke="rgba(139,92,246,.12)" strokeWidth="1.5" strokeLinecap="round"/>
-          ))}
-
-          {/* Clinic markers */}
-          {vis.map(c => {
-            const { x, y } = geoToXY(c.lat, c.lng, W, H);
-            const isSel = c.id === selId;
-            return (
-              <g key={c.id} style={{ cursor:'pointer' }}
-                onClick={(e) => { e.stopPropagation(); handlePinClick(c); }}
-                onMouseEnter={(e) => {
-                  const svg = svgRef.current;
-                  const rect = svg.getBoundingClientRect();
-                  const px = ((x - vb.x) / vb.w) * rect.width + rect.left;
-                  const py = ((y - vb.y) / vb.h) * rect.height + rect.top;
-                  setTooltip({ c, px, py });
-                }}
-                onMouseLeave={() => setTooltip(null)}
-              >
-                {isSel && <circle cx={x} cy={y} r={14} fill="none" stroke="rgba(109,40,217,.35)" strokeWidth="3">
-                  <animate attributeName="r" values="14;18;14" dur="2s" repeatCount="indefinite"/>
-                  <animate attributeName="opacity" values="1;.3;1" dur="2s" repeatCount="indefinite"/>
-                </circle>}
-                <circle cx={x} cy={y} r={isSel ? 7 : 5} fill={c.color} stroke="rgba(255,255,255,.85)" strokeWidth={isSel ? 2.5 : 1.5}/>
-              </g>
-            );
-          })}
-        </svg>
-
-        {/* Tooltip (HTML overlay) */}
-        {tooltip && (
-          <div style={{
-            position:'absolute',
-            left: tooltip.px + 12,
-            top: tooltip.py - 10,
-            background:'rgba(19,10,37,.96)',
-            border:'1px solid var(--border)',
-            borderRadius:9,
-            padding:'.55rem .75rem',
-            zIndex:1001,
-            pointerEvents:'none',
-            minWidth:160,
-            fontFamily:"'DM Sans',sans-serif",
-          }}>
-            <div style={{ fontWeight:700, fontSize:'.78rem', marginBottom:'.15rem' }}>{tooltip.c.name}</div>
-            <div style={{ fontSize:'.65rem', color:'var(--muted)', marginBottom:'.2rem' }}>{tooltip.c.spec}</div>
-            <div style={{ color:'#f59e0b', fontSize:'.65rem', marginBottom:'.15rem' }}>{'★'.repeat(Math.round(tooltip.c.rating))}{'☆'.repeat(5-Math.round(tooltip.c.rating))} {tooltip.c.rating}</div>
-            <div style={{ fontSize:'.6rem', color:'var(--dim)' }}>{tooltip.c.acc?'✓ Accepting':'Waitlist'} · {tooltip.c.dist}km</div>
-          </div>
-        )}
-
-        {/* Zoom controls */}
-        <div style={{ position:'absolute', bottom:'.85rem', right:'.85rem', zIndex:1000, display:'flex', flexDirection:'column', gap:'.3rem' }}>
-          <button onClick={()=>zoom('in')} style={{ width:30, height:30, borderRadius:7, background:'rgba(19,10,37,.94)', border:'1px solid var(--border)', color:'var(--white)', cursor:'pointer', fontSize:'.9rem', display:'flex', alignItems:'center', justifyContent:'center' }}>+</button>
-          <button onClick={()=>zoom('out')} style={{ width:30, height:30, borderRadius:7, background:'rgba(19,10,37,.94)', border:'1px solid var(--border)', color:'var(--white)', cursor:'pointer', fontSize:'.9rem', display:'flex', alignItems:'center', justifyContent:'center' }}>-</button>
-          <button onClick={()=>setVb({x:0,y:0,w:W,h:H})} style={{ width:30, height:30, borderRadius:7, background:'rgba(19,10,37,.94)', border:'1px solid var(--border)', color:'var(--white)', cursor:'pointer', fontSize:'.65rem', display:'flex', alignItems:'center', justifyContent:'center' }}>&#8634;</button>
-        </div>
+      {/* Map area - MapLibre GL */}
+      <div style={{ flex:1, position:'relative', overflow:'hidden' }}>
+        <div ref={mapContainer} style={{ width:'100%', height:'100%' }} />
 
         {/* Map filter controls */}
-        <div style={{ position:'absolute', top:'.85rem', left:'.85rem', zIndex:1000, display:'flex', gap:'.35rem', flexWrap:'wrap' }}>
+        <div style={{ position:'absolute', top:'.85rem', left:'.85rem', zIndex:10, display:'flex', gap:'.35rem', flexWrap:'wrap' }}>
           {[['all','All'],['__open','Open Now'],['__acc','Accepting']].map(([v,l])=>(
             <button key={v} onClick={()=>setMapFilt(v)} style={{ background:'rgba(19,10,37,.94)', border:`1px solid ${mapFilt===v?'var(--bh)':'var(--border)'}`, padding:'.4rem .72rem', borderRadius:8, fontSize:'.69rem', color: mapFilt===v?'var(--white)':'var(--dim)', cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>{l}</button>
           ))}
         </div>
 
         {/* Stats overlay */}
-        <div style={{ position:'absolute', top:'.85rem', right:'.85rem', zIndex:1000, background:'rgba(19,10,37,.94)', border:'1px solid var(--border)', borderRadius:10, padding:'.68rem .9rem' }}>
+        <div style={{ position:'absolute', top:'.85rem', right:'.85rem', zIndex:10, background:'rgba(19,10,37,.94)', border:'1px solid var(--border)', borderRadius:10, padding:'.68rem .9rem' }}>
           {[['Showing',vis.length],['Accepting',vis.filter(c=>c.acc).length],['Languages','10+']].map(([l,v])=>(
             <div key={l} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'1.4rem', marginBottom:'.24rem', fontSize:'.66rem', color:'var(--dim)' }}>
               <span>{l}</span><span style={{ fontFamily:"'DM Mono',monospace", fontSize:'.72rem', color:'var(--white)', fontWeight:500 }}>{v}</span>
@@ -300,7 +293,7 @@ export default function FindCare() {
         </div>
 
         {/* Legend */}
-        <div style={{ position:'absolute', bottom:'.85rem', left:'.85rem', zIndex:1000, background:'rgba(19,10,37,.94)', border:'1px solid var(--border)', borderRadius:10, padding:'.65rem .85rem' }}>
+        <div style={{ position:'absolute', bottom:'.85rem', left:'.85rem', zIndex:10, background:'rgba(19,10,37,.94)', border:'1px solid var(--border)', borderRadius:10, padding:'.65rem .85rem' }}>
           <div style={{ fontSize:'.52rem', fontWeight:600, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--muted)', marginBottom:'.42rem' }}>Specialty</div>
           {[['#7c3aed','Family'],['#db2777','Cardiology'],['#0891b2','Internal'],['#059669','Mental Health'],['#d97706','Paediatrics'],['#6366f1','Other']].map(([c,l])=>(
             <div key={l} style={{ display:'flex', alignItems:'center', gap:'.42rem', marginBottom:'.24rem', fontSize:'.63rem', color:'var(--dim)' }}>
@@ -342,7 +335,7 @@ export default function FindCare() {
               <div style={{ padding:'.9rem 1.3rem', borderBottom:'1px solid var(--border)' }}>
                 <div style={{ fontSize:'.56rem', fontWeight:600, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--muted)', marginBottom:'.6rem' }}>Next Available Slots</div>
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'.35rem' }}>
-                  {selClinic.slots.map((s,i)=>(
+                  {(selClinic.slots || []).map((s,i)=>(
                     <div key={i} onClick={()=>setSelSlot(s)} style={{ padding:'.4rem .3rem', borderRadius:7, textAlign:'center', fontSize:'.64rem', fontWeight:500, cursor:'pointer', border:`1px solid ${selSlot===s?'var(--bh)':'var(--border)'}`, background: selSlot===s?'rgba(109,40,217,.22)':'rgba(255,255,255,.02)', color: selSlot===s?'var(--white)':'var(--dim)', transition:'all .2s' }}>
                       <span style={{ fontSize:'.52rem', color: selSlot===s?'var(--lavender)':'var(--muted)', display:'block' }}>{s.d}</span>{s.t}
                     </div>
@@ -352,7 +345,7 @@ export default function FindCare() {
               {/* Reviews */}
               <div style={{ padding:'.9rem 1.3rem', borderBottom:'1px solid var(--border)' }}>
                 <div style={{ fontSize:'.56rem', fontWeight:600, letterSpacing:'.1em', textTransform:'uppercase', color:'var(--muted)', marginBottom:'.6rem' }}>Patient Reviews</div>
-                {selClinic.reviews.map((r,i)=>(
+                {(selClinic.reviews || []).map((r,i)=>(
                   <div key={i} style={{ background:'rgba(255,255,255,.025)', border:'1px solid rgba(255,255,255,.05)', borderRadius:9, padding:'.75rem', marginBottom:'.55rem' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'.3rem' }}>
                       <div><span style={{ fontSize:'.72rem', fontWeight:600 }}>{r.a}</span> <span style={{ fontSize:'.56rem', color:'var(--amethyst)' }}>· {r.l}</span></div>

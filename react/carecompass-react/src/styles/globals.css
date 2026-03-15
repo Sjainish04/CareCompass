@@ -277,3 +277,21 @@ html, body, #root {
 
 /* ── Map tooltip */
 .maptip { position: fixed; z-index: 50; pointer-events: none; background: rgba(19,10,37,.97); border: 1px solid rgba(139,92,246,.32); border-radius: 11px; padding: .72rem .85rem; min-width: 185px; box-shadow: 0 8px 30px rgba(0,0,0,.55); }
+
+/* ── MapLibre popup overrides */
+.cc-map-popup .maplibregl-popup-content {
+  background: rgba(19,10,37,.96);
+  border: 1px solid rgba(139,92,246,.3);
+  border-radius: 10px;
+  padding: .65rem .85rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  color: #fff;
+}
+.cc-map-popup .maplibregl-popup-tip {
+  border-top-color: rgba(19,10,37,.96);
+}
+.maplibregl-ctrl-attrib { font-size: .55rem !important; opacity: .5; }
+.maplibregl-ctrl-group button { background: rgba(19,10,37,.94) !important; border-color: var(--border) !important; color: var(--white) !important; }
+.maplibregl-ctrl-group button:hover { background: rgba(109,40,217,.2) !important; }
+.maplibregl-ctrl-group button span { filter: invert(1); }
+.maplibregl-ctrl-group { border-radius: 8px !important; border: 1px solid var(--border) !important; overflow: hidden; }

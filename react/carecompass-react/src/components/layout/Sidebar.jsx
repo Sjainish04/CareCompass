@@ -4,7 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { NAV_PAT, NAV_PROV } from '../../data';
 
 export default function Sidebar() {
-  const { role, view, go } = useApp();
+  const { role, view, go, badgeCounts } = useApp();
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
 
@@ -47,6 +47,16 @@ export default function Sidebar() {
             <div style={{ fontSize:'.52rem', fontWeight:600, letterSpacing:'.13em', textTransform:'uppercase', color:'var(--muted)', padding:'0 .58rem', margin:'.5rem 0 .22rem' }}>{section.section}</div>
             {section.items.map(item => {
               const active = view === item.id;
+              // Dynamic badge overrides for appointments and referrals
+              let badge = item.badge;
+              let bc = item.bc;
+              if (item.id === 'p-appointments') {
+                badge = badgeCounts.appointments > 0 ? String(badgeCounts.appointments) : item.badge;
+                bc = badgeCounts.appointments > 0 ? 'g' : item.bc;
+              } else if (item.id === 'p-referrals') {
+                badge = badgeCounts.referrals > 0 ? String(badgeCounts.referrals) : item.badge;
+                bc = badgeCounts.referrals > 0 ? 'y' : item.bc;
+              }
               return (
                 <div key={item.id} onClick={() => go(item.id)} data-id={item.id} style={{
                   display:'flex', alignItems:'center', gap:'.55rem',
@@ -61,8 +71,8 @@ export default function Sidebar() {
                 >
                   <span style={{ fontSize:'.82rem', width:17, textAlign:'center', flexShrink:0 }}>{item.icon}</span>
                   {item.label}
-                  {item.badge && (
-                    <span style={{ marginLeft:'auto', padding:'.04rem .35rem', borderRadius:100, fontSize:'.54rem', fontWeight:700, background: item.bc==='g'?'var(--green)':item.bc==='r'?'var(--red)':item.bc==='y'?'var(--yellow)':'var(--violet)', color: item.bc==='y'?'#000':'var(--white)' }}>{item.badge}</span>
+                  {badge && (
+                    <span style={{ marginLeft:'auto', padding:'.04rem .35rem', borderRadius:100, fontSize:'.54rem', fontWeight:700, background: bc==='g'?'var(--green)':bc==='r'?'var(--red)':bc==='y'?'var(--yellow)':'var(--violet)', color: bc==='y'?'#000':'var(--white)' }}>{badge}</span>
                   )}
                 </div>
               );

@@ -5,6 +5,8 @@ import { chatCompletion } from '../services/gptoss.js';
 
 const router = Router();
 
+// DB columns: id, user_id, role, content, created_at
+
 function buildSystemPrompt(user) {
   return `You are Fatima, a warm, empathetic healthcare navigator for CareCompass in the Greater Toronto Area. You help patients with appointment booking, referral tracking, document preparation, and answering health-related questions.
 
@@ -22,19 +24,19 @@ router.post('/message', requireAuth, async (req, res, next) => {
     const { text } = req.body;
     if (!text?.trim()) return res.status(400).json({ error: 'Message text required' });
 
-    // Load recent conversation history (DB schema: conversation_id, sender_role, message)
+    // Load recent conversation history
     const { data: history } = await supabaseAdmin
       .from('navigator_messages')
-      .select('sender_role, message')
-      .eq('conversation_id', req.user.id)
+      .select('role, content')
+      .eq('user_id', req.user.id)
       .order('created_at', { ascending: false })
       .limit(10);
 
     const messages = [
       { role: 'system', content: buildSystemPrompt(req.user) },
       ...((history || []).reverse().map(h => ({
-        role: h.sender_role === 'user' ? 'user' : 'assistant',
-        content: h.message,
+        role: h.role === 'user' ? 'user' : 'assistant',
+        content: h.content,
       }))),
       { role: 'user', content: text },
     ];
@@ -44,8 +46,8 @@ router.post('/message', requireAuth, async (req, res, next) => {
 
     // Store messages
     await supabaseAdmin.from('navigator_messages').insert([
-      { conversation_id: req.user.id, sender_role: 'user', message: text },
-      { conversation_id: req.user.id, sender_role: 'assistant', message: responseText },
+      { user_id: req.user.id, role: 'user', content: text },
+      { user_id: req.user.id, role: 'assistant', content: responseText },
     ]);
 
     res.json({ response: responseText });
@@ -60,18 +62,17 @@ router.get('/messages', requireAuth, async (req, res, next) => {
     const { data, error } = await supabaseAdmin
       .from('navigator_messages')
       .select('*')
-      .eq('conversation_id', req.user.id)
+      .eq('user_id', req.user.id)
       .order('created_at', { ascending: true })
       .limit(limit);
 
     if (error) return res.status(500).json({ error: error.message });
 
-    // Map to frontend shape
     const mapped = (data || []).map(m => ({
       id: m.id,
-      user_id: m.conversation_id,
-      role: m.sender_role,
-      content: m.message,
+      user_id: m.user_id,
+      role: m.role,
+      content: m.content,
       created_at: m.created_at,
     }));
     res.json(mapped);
@@ -84,7 +85,7 @@ router.delete('/messages', requireAuth, async (req, res, next) => {
     await supabaseAdmin
       .from('navigator_messages')
       .delete()
-      .eq('conversation_id', req.user.id);
+      .eq('user_id', req.user.id);
 
     res.json({ message: 'Conversation cleared' });
   } catch (err) { next(err); }

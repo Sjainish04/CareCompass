@@ -3,6 +3,8 @@ import { supabaseAdmin } from '../config/supabase.js';
 
 const router = Router();
 
+// DB columns: id, name, spec, icon, lat, lng, addr, phone, hours, acc, open, dist, wait, rating, rc, color, langs, reviews, slots, created_at
+
 // GET /api/providers — clinic finder (public, no auth)
 router.get('/', async (req, res, next) => {
   try {
@@ -10,8 +12,8 @@ router.get('/', async (req, res, next) => {
 
     let query = supabaseAdmin.from('providers').select('*');
 
-    if (specialty) query = query.eq('specialty', specialty);
-    if (search) query = query.or(`clinic_name.ilike.%${search}%,specialty.ilike.%${search}%`);
+    if (specialty) query = query.eq('spec', specialty);
+    if (search) query = query.or(`name.ilike.%${search}%,spec.ilike.%${search}%`);
 
     const { data, error } = await query;
 
@@ -19,22 +21,25 @@ router.get('/', async (req, res, next) => {
 
     // Map DB columns to frontend-expected shape
     const mapped = (data || []).map(p => ({
-      id: p.id || p.clinic_id,
-      name: p.clinic_name,
-      spec: p.specialty,
-      icon: '🏥',
-      addr: p.address,
+      id: p.id,
+      name: p.name,
+      spec: p.spec,
+      icon: p.icon || '🏥',
+      lat: p.lat,
+      lng: p.lng,
+      addr: p.addr,
       phone: p.phone,
-      langs: p.language_supported || [],
-      acc: true,
-      open: true,
-      dist: 0,
-      wait: 0,
-      rating: 4.5,
-      rc: 100,
-      color: '#7c3aed',
-      reviews: [],
-      slots: [],
+      hours: p.hours,
+      acc: p.acc ?? true,
+      open: p.open ?? true,
+      dist: p.dist || 0,
+      wait: p.wait || 0,
+      rating: p.rating || 4.5,
+      rc: p.rc || 100,
+      color: p.color || '#7c3aed',
+      langs: p.langs || [],
+      reviews: p.reviews || [],
+      slots: p.slots || [],
       created_at: p.created_at,
     }));
 
