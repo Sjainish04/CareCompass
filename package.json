@@ -1,11 +1,15 @@
 {
   "name": "carecompass-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "CareCompass GTA Healthcare Navigator — REST API",
-  "main": "src/index.js",
+  "main": "backend/src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
+    "start": "node backend/src/index.js",
+    "dev": "nodemon backend/src/index.js",
+    "dev:frontend": "cd react/carecompass-react && npm run dev",
+    "dev:all": "npm run dev & npm run dev:frontend",
+    "seed": "node backend/src/scripts/seed.js",
     "test": "jest --runInBand"
   },
   "dependencies": {
